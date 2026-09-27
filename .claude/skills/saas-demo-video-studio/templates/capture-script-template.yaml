@@ -1,0 +1,84 @@
+# CAPTURE SCRIPT — kịch bản quay chi tiết (BẮT BUỘC trước khi quay; cổng G0 trong references/qa-gates.md)
+# Giải thích từng trường cho người không kỹ thuật: templates/capture-script-guide.md
+# Kiểm trước khi quay:  python scripts/capture/capture_log_to_edit.py lint  --script capture-script.yaml --web-data footage/web-data-<ngày>.md
+# Sau khi quay:         python scripts/capture/capture_log_to_edit.py build --script capture-script.yaml --log footage/capture-log.jsonl --out data/
+#
+# App dạng khác (dashboard, bảng, AI chat, editor, website, nhiều bước, mobile): references/capture-script-by-app-type.md —
+#   RECON → feature-map.yaml → `capture_log_to_edit.py draft` sinh nháp theo dạng app → điền → lint.
+# Selector ưu tiên: text=Chữ / aria=Nhãn / testid=id / role=button:Tên → CSS id/name → class (tránh class sinh tự động) →
+#   toạ độ (cuối cùng). Thêm `fallback_text` để agent tìm lại khi app đổi giao diện.
+# Agent quay GHI capture log cho MỌI step + mọi selector trong camera/highlight (getBoundingClientRect + epoch) —
+# script build đọc log đó để sinh con trỏ ảo / camera / highlight, KHÔNG dò con trỏ bằng màu nữa.
+
+project: "<tên sản phẩm> — <loại video A–E>"
+base_url: "https://<app>.example"
+web_data: "footage/web-data-<YYYY-MM-DD>.md"   # nguồn số thật (bước 2 SKILL.md); mọi expected_on_screen phải có ở đây
+vo_script: "vo/script.txt"
+
+capture:                        # thông số màn hình — đo 1 lần trước khi quay, ghi lại ở đây
+  browser_zoom: 100             # % — khác 100 thì toạ độ lệch
+  dpr: 1.25                     # window.devicePixelRatio (Windows scale 125% → 1.25)
+  viewport_css: [1536, 808]     # [innerWidth, innerHeight] sau F11
+  viewport_origin_px: [0, 70]   # góc trên-trái viewport trên màn hình (px vật lý); 70 = dải vàng "Claude đang gỡ lỗi trình duyệt"
+  crop: "crop=1920:1010:0:70"   # crop áp lên footage (giống project.json capture.crop) → footage = 1920×1010
+  max_zoom: 1.5                 # footage 1010p phóng > 1.5× là chữ mềm/nhoè
+
+forbidden_pages: ["/admin", "/settings/billing"]     # trang cấm quay (brief)
+global_avoid:                                         # vùng che MẶC ĐỊNH mọi shot (privacy-checklist)
+  - {selector: "header .user-email", reason: "email người dùng"}
+  - {selector: "text=ADMIN", reason: "mục ADMIN sidebar"}
+  - {selector: ".model-badge", reason: "tên vendor/model AI"}
+never_click: ["text=Lưu", "text=Save", "text=Xoá", "button[type=submit]"]   # KHÔNG ghi dữ liệu vào tài khoản khách
+
+shots:
+  # ---------- VÍ DỤ 1: gõ số → kết quả đổi (loại A/B) ----------
+  - id: s01-hook
+    app_type: form_calculator               # 1 trong 8 dạng (references/capture-script-by-app-type.md §2)
+    vo_line: "Lô hàng này lãi hay lỗ? Bao lâu thì thu đủ vốn?"
+    anchor_word: "lãi"                      # từ VO mà khoảnh khắc chính phải rơi vào
+    duration_target: 6.0                    # giây trên phim (khớp độ dài câu VO)
+    url: "/batches/local/<id>/edit"
+    preconditions:
+      - "đã đăng nhập tài khoản demo"
+      - "lô A có dữ liệu (SL 30, COGS đủ dòng) — trang KHÔNG trống"
+      - "zoom trình duyệt 100%, F11, widget onboarding đã tắt"
+      - "cuộn về đầu trang (scrollY = 0)"
+    steps:
+      - {action: navigate, value: "/batches/local/<id>/edit", hold_s: 1.0}
+      - {action: hover, selector: "input[name=price]", hold_s: 0.8}
+      - {action: click, selector: "input[name=price]", fallback_text: "Giá bán"}
+      - {action: type, selector: "input[name=price]", fallback_text: "Giá bán", value: "899000", type_delay_ms: 150}
+      - {action: hold, hold_s: 2.0}                              # đứng yên cho cột P&L đổi số
+    camera:
+      - {t_rel: 0.0, zoom_to: "input[name=price]", level: 1.5, ease: "power3.inOut"}
+      - {t_rel: 3.2, zoom_to: "text=Lợi nhuận ròng", level: 1.4, ease: "power3.inOut", zoom_out_at: 5.5}
+    highlight:
+      - {selector: "input[name=price]", kind: spotlight, t_rel: 0.3, dur: 2.5}
+      - {selector: "text=Lợi nhuận ròng", kind: callout, text: "8.879.840", t_rel: 3.6, dur: 2.0}
+    cursor: ["input[name=price]", "text=Lợi nhuận ròng"]       # con trỏ ảo đi qua các selector theo thứ tự
+    expected_on_screen: ["899.000", "8.879.840", "32.92%"]     # PHẢI có trong web_data (lint kiểm)
+    avoid:
+      - {selector: ".sidebar .admin", reason: "mục ADMIN"}
+    9x16_focus: "text=Lợi nhuận ròng"                           # vùng giữ trong hero slot bản dọc
+
+  # ---------- VÍ DỤ 2: hover tooltip + cuộn tới khối kết quả ----------
+  - id: s02-fee-tooltip
+    vo_line: "Phí sàn Shopee và TikTok cập nhật theo đợt mới nhất."
+    anchor_word: "cập nhật"
+    duration_target: 4.0
+    url: "/batches/local/<id>/edit"
+    preconditions:
+      - "đang ở cùng trang s01, không reload"
+      - "tooltip phí sàn hiện khi hover (đã thử lúc soát data)"
+    steps:
+      - {action: scroll_to, selector: "text=Phí Cố Định Sàn", hold_s: 0.6}
+      - {action: hover, selector: "[data-tip=platform-fee]", hold_s: 3.0}
+    camera:
+      - {t_rel: 0.2, zoom_to: "[data-tip=platform-fee]", level: 1.4, ease: "power2.out", zoom_out_at: 3.6}
+    highlight:
+      - {selector: ".tooltip", kind: box, t_rel: 0.9, dur: 2.5}
+      - {selector: "text=verified 09/2026", kind: underline, t_rel: 1.2, dur: 2.0}
+    cursor: ["[data-tip=platform-fee]"]
+    expected_on_screen: ["verified 09/2026"]
+    avoid: []
+    9x16_focus: ".tooltip"

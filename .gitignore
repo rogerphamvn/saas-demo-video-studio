@@ -1,0 +1,42 @@
+# media: never commit footage, audio, renders or stills of real UIs
+*.mkv
+*.mp4
+*.mov
+*.webm
+*.wav
+*.m4a
+*.mp3
+*.aac
+*.flac
+footage/
+renders/
+deliver/
+stills/
+review*/
+**/assets/footage/*
+**/assets/audio/*
+**/assets/broll/*
+**/assets/fonts/*
+!**/assets/*/.gitkeep
+# screen captures / contact sheets
+*_sheet.jpg
+check/
+# node / python
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+# secrets and machine state
+.env
+.env.*
+!.env.example
+capture-log.jsonl
+markers.txt
+STOP_*
+READY_*
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

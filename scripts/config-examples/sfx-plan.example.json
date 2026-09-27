@@ -1,0 +1,271 @@
+{
+ "_doc": "SFX plan = the 27/09 ProfitBase v3 list. at: t | bar | drop (1-based) | cut (clip id in data/cuts.json) | chapter (0-based or id) | word {text,line,k}. time = anchor + offset. file = name in sfx_dir (.wav added).",
+ "sfx_dir": "assets/audio/sfx",
+ "events": [
+  {
+   "slot": "DROP 1 bar 3",
+   "at": {
+    "drop": 1
+   },
+   "offset": 0,
+   "file": "slam",
+   "rel_db": -11,
+   "kind": "drop"
+  },
+  {
+   "slot": "E2 odometer on 'trả'",
+   "at": {
+    "word": {
+     "text": "trả",
+     "line": "E02"
+    }
+   },
+   "offset": 0,
+   "file": "counter",
+   "rel_db": -17,
+   "kind": "tick"
+  },
+  {
+   "slot": "E2 typing on 'Gõ'",
+   "at": {
+    "word": {
+     "text": "gõ",
+     "line": "E02"
+    }
+   },
+   "offset": 0,
+   "file": "typing",
+   "rel_db": -20,
+   "kind": "tick"
+  },
+  {
+   "slot": "T2 flip E2->E3",
+   "at": {
+    "cut": "e03"
+   },
+   "offset": 0,
+   "file": "flip",
+   "rel_db": -13,
+   "kind": "tx"
+  },
+  {
+   "slot": "E3 odometer 'nghìn' -0.45",
+   "at": {
+    "word": {
+     "text": "nghìn",
+     "line": "E03"
+    }
+   },
+   "offset": -0.45,
+   "file": "counter",
+   "rel_db": -17,
+   "kind": "tick"
+  },
+  {
+   "slot": "T3 zoom E3->E4 (chapter 4)",
+   "at": {
+    "chapter": 3
+   },
+   "offset": 0,
+   "file": "zoom-in",
+   "rel_db": -13,
+   "kind": "tx"
+  },
+  {
+   "slot": "E4 odometer bar 12 -0.35",
+   "at": {
+    "bar": 12
+   },
+   "offset": -0.35,
+   "file": "counter",
+   "rel_db": -17,
+   "kind": "tick"
+  },
+  {
+   "slot": "T4 pop E5 footage in",
+   "at": {
+    "cut": "e05"
+   },
+   "offset": 0,
+   "file": "pop-2",
+   "rel_db": -13,
+   "kind": "tx"
+  },
+  {
+   "slot": "DROP 2 bar 17",
+   "at": {
+    "drop": 2
+   },
+   "offset": 0,
+   "file": "slam",
+   "rel_db": -11,
+   "kind": "drop"
+  },
+  {
+   "slot": "E6 odometer 'thêm' +0.2",
+   "at": {
+    "word": {
+     "text": "thêm",
+     "line": "E06"
+    }
+   },
+   "offset": 0.2,
+   "file": "counter",
+   "rel_db": -17,
+   "kind": "tick"
+  },
+  {
+   "slot": "T1 whoosh E6->E7",
+   "at": {
+    "cut": "e07"
+   },
+   "offset": 0,
+   "file": "whoosh-2",
+   "rel_db": -14,
+   "kind": "tx"
+  },
+  {
+   "slot": "E7 odometer 'đáng' -0.4",
+   "at": {
+    "word": {
+     "text": "đáng",
+     "line": "E07"
+    }
+   },
+   "offset": -0.4,
+   "file": "counter",
+   "rel_db": -17,
+   "kind": "tick"
+  },
+  {
+   "slot": "T2 flip E7->E8 hard cut",
+   "at": {
+    "cut": "e08"
+   },
+   "offset": 0,
+   "file": "flip",
+   "rel_db": -13,
+   "kind": "tx"
+  },
+  {
+   "slot": "DROP 3 bar 27",
+   "at": {
+    "drop": 3
+   },
+   "offset": 0,
+   "file": "slam",
+   "rel_db": -11,
+   "kind": "drop"
+  },
+  {
+   "slot": "T3 zoom E9->E10",
+   "at": {
+    "cut": "e10"
+   },
+   "offset": 0,
+   "file": "zoom-in",
+   "rel_db": -13,
+   "kind": "tx"
+  },
+  {
+   "slot": "T1 whoosh E10->E11 hard cut",
+   "at": {
+    "cut": "e11"
+   },
+   "offset": 0,
+   "file": "whoosh-2",
+   "rel_db": -14,
+   "kind": "tx"
+  },
+  {
+   "slot": "E11 typing the question",
+   "at": {
+    "cut": "e11"
+   },
+   "offset": 0.5,
+   "file": "typing",
+   "rel_db": -20,
+   "kind": "tick"
+  },
+  {
+   "slot": "T4 pop E11->E12",
+   "at": {
+    "cut": "e12a"
+   },
+   "offset": 0,
+   "file": "pop-2",
+   "rel_db": -13,
+   "kind": "tx"
+  },
+  {
+   "slot": "E12 panel swap e12b",
+   "at": {
+    "cut": "e12b"
+   },
+   "offset": 0,
+   "file": "click",
+   "rel_db": -18,
+   "kind": "tick"
+  },
+  {
+   "slot": "E12 panel swap e12c",
+   "at": {
+    "cut": "e12c"
+   },
+   "offset": 0,
+   "file": "click",
+   "rel_db": -18,
+   "kind": "tick"
+  },
+  {
+   "slot": "E12 panel swap e12d",
+   "at": {
+    "cut": "e12d"
+   },
+   "offset": 0,
+   "file": "click",
+   "rel_db": -18,
+   "kind": "tick"
+  },
+  {
+   "slot": "E12 panel swap e12e",
+   "at": {
+    "cut": "e12e"
+   },
+   "offset": 0,
+   "file": "click",
+   "rel_db": -18,
+   "kind": "tick"
+  },
+  {
+   "slot": "E12 panel swap e12f",
+   "at": {
+    "cut": "e12f"
+   },
+   "offset": 0,
+   "file": "click",
+   "rel_db": -18,
+   "kind": "tick"
+  },
+  {
+   "slot": "logo hit E13 -40 ms (brand exception)",
+   "at": {
+    "cut": "e13"
+   },
+   "offset": -0.04,
+   "file": "logo-hit",
+   "rel_db": -12,
+   "kind": "brand"
+  },
+  {
+   "slot": "E13 circle wipe theme",
+   "at": {
+    "cut": "e13"
+   },
+   "offset": 1.45,
+   "file": "whoosh-1",
+   "rel_db": -14,
+   "kind": "tx"
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+ "E01": {
+  "atempo": 1.05,
+  "gap_s": 0.2,
+  "why": "tu nhien +0.35s > 0.3: a) atempo 1.05 + b) khoang lang giua 2 cau 250->200 ms -> vua o 0-3"
+ },
+ "E05": {
+  "atempo": 1.06,
+  "gap_s": 0.12,
+  "inner_pause_cap": 0.18,
+  "start_shift_s": -0.5,
+  "why": "tu nhien +0.80s: a) atempo 1.06 (tran) b) khoang lang giua cau 250->120 ms + rut lang trong cau >0.18s -> con ~+0.23s; c) KHONG tran sang E6 vi PLAN G5: do->xanh dung DROP 2 (o 17) - chu 'lo' phai nam TRUOC drop; thay vao do vao som 0.50s (duoi E4 con trong ~2.7s) de E6 vao dung o 17"
+ }
+}

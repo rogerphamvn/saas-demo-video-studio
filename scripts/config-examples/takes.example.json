@@ -1,0 +1,19 @@
+{
+ "_doc": "select_takes.py: '<line>.<sentence idx>' -> variant tag from raw_var/variants_log.json + why (27/09 ProfitBase choices)",
+ "E02.0": {
+  "tag": "E02.0-r2",
+  "why": "take 1: both ASRs heard 'lai' not 'lãi'; r2: whisper 'lãi'"
+ },
+ "E04.0": {
+  "tag": "E04.0-hoa2",
+  "why": "respelled input 'Hòa' -> both ASRs 'Hoà vốn'"
+ },
+ "E09.0": {
+  "tag": "E09.0-kaypiai",
+  "why": "respelled 'cây pi ai' -> both ASRs 'KPI'"
+ },
+ "E13.0": {
+  "tag": "E13.0-r2",
+  "why": "take 1 'Profit bass'; r2 both ASRs 'Profitbase'"
+ }
+}

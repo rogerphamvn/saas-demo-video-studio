@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<!--
+  SaaS demo video studio - HyperFrames composition TEMPLATE (16:9, 1920x1080), "chapter tour" layout:
+  left = 2-line chapter title, right = ONE UI card that holds the real screen capture, bottom = live caption.
+  Timing is NEVER typed by hand: data/grid.js (BPM grid, chapters, drops - written by scripts/music/conform_music.py) and
+  data/captions.js (VO words - scripts/build/make_captions_js.py). Footage <video> tags are written between the FOOTAGE markers by
+  scripts/build/cut_clips.py. Writers: only the integrator edits this file; scene builders edit scenes/eXX.js only.
+  Runs as-is with the sample data (placeholders instead of footage):  npx --yes hyperframes@0.8.78 lint
+  (lint reports the missing assets/audio/mix.m4a until step 09 has run - expected).
+  ORIGIN: ProfitBase v3 case (27-28/09/2026), snapshot DURING the v3.1 motion pass. TODO(sync-v3.1) - see README ROADMAP.
+-->
+<html lang="vi" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
+    <title>SaaS demo video - composition</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <link rel="stylesheet" href="tokens.css">
+    <style>
+      /* @font-face repeated inline: HyperFrames StaticGuard only resolves fonts declared in the page (tokens.css keeps the same) */
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter-var.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+      @font-face { font-family: "PlexI"; src: url("assets/fonts/IBMPlexSerif-Italic.ttf") format("truetype"); font-style: italic; font-weight: 400; font-display: block; }
+      @font-face { font-family: "PlexI"; src: url("assets/fonts/IBMPlexSerif-BoldItalic.ttf") format("truetype"); font-style: italic; font-weight: 700; font-display: block; }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: "Inter", sans-serif; }
+      .layer { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+      .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+      #bg { background: var(--bg); }
+      #gridlines { left: -120px; top: -80px; width: 2160px; height: 1240px; opacity: 0.55;
+                   background-image: radial-gradient(circle, rgba(105, 82, 224, 0.22) 1.5px, transparent 1.8px); background-size: 40px 40px; }
+      #glowR, #glowG { opacity: 0; visibility: hidden; pointer-events: none; }
+      #glowR { background: radial-gradient(900px 620px at 1345px 430px, rgba(221, 60, 60, 0.16) 0%, rgba(221, 60, 60, 0) 70%); }
+      #glowG { background: radial-gradient(900px 620px at 1345px 430px, rgba(31, 173, 83, 0.16) 0%, rgba(31, 173, 83, 0) 70%); }
+
+      /* chapter title column (m7) */
+      .ttl { position: absolute; left: var(--col-x); top: var(--col-top); width: var(--col-w); }
+      .ttl .ln { overflow: hidden; padding-bottom: 0.06em; }
+      .ttl .ln > span { display: inline-block; white-space: nowrap; }
+      .ttl .cnt { font: 600 18px/1.4 "Inter"; letter-spacing: 0.18em; color: var(--mute); margin-bottom: 18px; }
+      .ttl .t1 { font-family: "Inter"; font-weight: 900; line-height: 1.02; letter-spacing: -0.03em; color: var(--ink); }
+      .ttl .t2 { font-family: "PlexI", serif; font-style: italic; font-weight: 400; line-height: 1.12; letter-spacing: -0.01em; color: var(--p); }
+      .ttl.dark .t1 { color: var(--dark-ink); } .ttl.dark .t2 { color: #B7A8FF; } .ttl.dark .cnt { color: #8C889D; }
+
+      /* UI card + footage slots */
+      #cardwrap { perspective: 2000px; }
+      #cardtilt { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-style: preserve-3d; }
+      #card::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit;
+                     background: linear-gradient(118deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.05) 32%, rgba(255,255,255,0) 55%); }
+      #sweep { position: absolute; top: 0; bottom: 0; left: 0; width: 34%; z-index: 6; pointer-events: none; visibility: hidden;
+               background: linear-gradient(100deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.38) 50%, rgba(255,255,255,0) 100%); }
+      #slab { position: absolute; left: -200px; top: -100px; width: 2320px; height: 1280px; background: #6952E0; visibility: hidden; transform: skewX(-14deg); }
+      .bloom { position: absolute; border-radius: 50%; pointer-events: none; }
+      .burst { position: absolute; width: 0; height: 0; }
+      .burst i { position: absolute; left: 0; top: 0; width: 0; height: 0; }
+      .burst b { position: absolute; left: 0; top: -3px; width: 70px; height: 6px; border-radius: 3px; transform-origin: 0 50%; }
+      /* split-flap digits (v3.1) */
+      .fl-c { position: relative; display: inline-block; width: 0.66em; height: 1.14em; margin: 0 0.015em; vertical-align: top; }
+      .fl-k { position: absolute; left: 0; top: 0; width: 100%; height: 100%; text-align: center; line-height: 1.14em; border-radius: 0.09em;
+              background: rgba(105, 82, 224, 0.08); visibility: hidden; backface-visibility: hidden; }
+      .fl-k.k0 { visibility: visible; }
+      .fl-line { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(22, 19, 43, 0.14); }
+      .fl-s { display: inline-block; }
+      .ttl .w { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: 0.1em; margin-bottom: -0.1em; }
+      .ttl .wi { display: inline-block; }
+      .ttl .t2 { position: relative; }
+      .ttl .ul { position: absolute; left: 0; bottom: 0.02em; width: 100%; height: 4px; border-radius: 2px; background: var(--p); transform-origin: 0 50%; }
+      .ill svg path { fill: none; stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 1; stroke-linecap: round; }
+      .ill .ln1 { stroke: var(--p); } .ill .ln2 { stroke: var(--g); }
+      .ill { margin-top: 12px; }
+      .stackbar { display: flex; height: 18px; margin: 12px 0 4px; border-radius: 9px; overflow: hidden; }
+      .stackbar i { display: block; height: 100%; transform-origin: 0 50%; }
+      .bars3 { display: flex; gap: 22px; align-items: flex-end; height: 132px; margin-top: 10px; }
+      .b3 { display: flex; flex-direction: column; align-items: center; width: 170px; }
+      .b3 span { font: 700 18px/1.3 "Inter"; margin-bottom: 6px; white-space: nowrap; }
+      .b3 i { display: block; width: 100%; border-radius: 8px 8px 0 0; background: var(--p); transform-origin: 50% 100%; }
+      .b3:nth-child(2) i { background: #8C7BF0; } .b3:nth-child(3) i { background: #B7A8FF; }
+      .bom { position: relative; height: 120px; margin: 8px 0; }
+      .bom svg { position: absolute; left: 0; top: 0; }
+      .bom .bl { fill: none; stroke: var(--p); stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; }
+      .bom .bn { position: absolute; left: 0; width: 148px; padding: 4px 10px; border-radius: 999px; background: #EDE9FF; color: var(--p); font: 700 15px/1.3 "Inter"; white-space: nowrap; }
+      .bom .bc { position: absolute; left: 320px; top: 42px; padding: 6px 16px; border-radius: 999px; background: var(--ink); color: #fff; font: 800 18px/1.3 "Inter"; }
+      .lift { position: relative; margin: 8px 0; }
+      .lift .zone { fill: rgba(221, 60, 60, 0.12); stroke: rgba(221, 60, 60, 0.5); stroke-dasharray: 4 4; }
+      .lift .lc { fill: none; stroke: var(--ink); stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 1; }
+      .lift .mk { fill: var(--p); }
+      .lift .zl { position: absolute; left: 380px; top: 36px; font: 700 15px/1.2 "Inter"; color: var(--r); white-space: nowrap; }
+      .donut { position: absolute; right: 22px; top: 44px; }
+      .donut .dn { fill: none; stroke-width: 20; }
+      .gauge { position: absolute; right: 20px; top: 22px; }
+      .gauge .gb { fill: none; stroke: #E4E2EA; stroke-width: 16; stroke-linecap: round; }
+      .gauge .gz { fill: none; stroke: var(--g); stroke-width: 16; }
+      .gauge .nd { stroke: var(--ink); stroke-width: 4; stroke-linecap: round; }
+      .bubble { position: absolute; right: 26px; top: 20px; display: flex; gap: 6px; padding: 12px 16px; border-radius: 18px; background: #EDE9FF; }
+      .bubble i { width: 10px; height: 10px; border-radius: 50%; background: var(--p); display: block; }
+      .mods.tiles3d { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; top: 360px; }
+      .mods.tiles3d div { font-size: 26px; padding: 14px 20px; border-radius: 14px; background: #fff; color: #8C889D;
+                          box-shadow: 0 10px 26px rgba(30,25,70,.12), 0 0 0 1px rgba(105,82,224,.12); }
+
+      #card { position: absolute; left: 880px; top: 110px; width: 930px; height: 640px; border-radius: 22px; overflow: hidden; background: var(--app);
+              box-shadow: 0 6px 16px rgba(30, 25, 70, 0.14), 0 44px 100px rgba(30, 25, 70, 0.26), 0 0 0 1px rgba(30, 25, 70, 0.06); }
+      .slot { position: absolute; inset: 0; }
+      .slot .cam { position: absolute; inset: 0; transform-origin: 50% 50%; }
+      .slot .vwrap { position: absolute; inset: 0; overflow: hidden; }
+      .slot .vbox { position: absolute; overflow: hidden; }
+      .slot .vbox video { position: absolute; left: 0; top: 0; width: 1920px; height: 1010px; transform-origin: 0 0; }
+      .slot .ph { position: absolute; inset: 14px; border-radius: 14px; border: 3px dashed #C9C5D6; background: var(--slot);
+                  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--slot-ink); }
+      .slot .phk { font: 700 20px/1.3 "Inter"; letter-spacing: 0.2em; }
+      .slot .phid { font: 800 44px/1.2 "Inter"; color: #4A4660; margin-top: 8px; }
+      .slot .phs { font: 600 20px/1.4 "Inter"; margin-top: 10px; }
+      .slot .phn { font: 500 18px/1.4 "Inter"; margin-top: 8px; max-width: 80%; }
+      .tgt { position: absolute; width: 0; height: 0; }
+      .tgt i { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 3px dashed var(--p); }
+      .tgt span { position: absolute; left: 28px; top: -12px; white-space: nowrap; font: 700 16px/1.4 "Inter"; color: var(--p); background: rgba(255,255,255,.85); padding: 0 6px; border-radius: 6px; }
+
+      /* callouts, pills, [CHỜ ĐO] */
+      .callout { position: absolute; padding: 24px 28px; background: var(--card); border-radius: 20px;
+                 box-shadow: 0 24px 60px rgba(30, 25, 70, 0.18), 0 0 0 1px rgba(105, 82, 224, 0.18); color: var(--ink); }
+      .callout .k { font: 600 17px/1.3 "Inter"; letter-spacing: 0.14em; color: var(--mute); text-transform: uppercase; }
+      .callout .v { font: 800 44px/1.1 "Inter"; margin-top: 10px; white-space: nowrap; }
+      .callout .s { font: 500 20px/1.35 "Inter"; color: #6A667E; margin-top: 8px; }
+      .callout .row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; font: 600 22px/1.5 "Inter"; white-space: nowrap; }
+      .callout .row.old { opacity: 0.35; }
+      .callout .row b { font-weight: 800; }
+      .pill { display: inline-block; padding: 8px 18px; border-radius: 999px; font: 700 24px/1.25 "Inter"; white-space: nowrap;
+              background: var(--pl); color: var(--p); }
+      .pill.r { background: var(--rl); color: var(--r); } .pill.g { background: var(--gl); color: var(--g); } .pill.on { background: var(--p); color: #fff; }
+      .wait { display: inline-flex; flex-direction: column; align-items: flex-start; padding: 6px 14px; border-radius: 10px; background: #ECEAF1;
+              border: 2px dashed var(--wait); color: #8A869A; font: 800 26px/1.2 "Inter"; white-space: nowrap; }
+      .wait small { font: 600 14px/1.3 "Inter"; letter-spacing: 0.04em; color: #9A96AA; }
+      .g { color: var(--g); } .r { color: var(--r); } .p { color: var(--p); }
+
+      /* odometer (m3) */
+      .odo { display: inline-flex; white-space: nowrap; }
+      .odo-c { display: inline-block; height: 1.12em; overflow: hidden; vertical-align: top; }
+      .odo-strip { display: block; }
+      .odo-strip > span, .odo-s { display: block; height: 1.12em; line-height: 1.12em; text-align: center; }
+      .odo-s { display: inline-block; }
+
+      /* gestures */
+      .bite { position: relative; height: 74px; border-radius: 12px; overflow: hidden; margin-top: 18px; background: #F1F0F5; }
+      .bite .ghost { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(221,60,60,.5) 0 3px, transparent 3px 11px);
+                     border: 2px dashed rgba(221, 60, 60, 0.55); border-radius: 12px; }
+      .bite .solid { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: var(--p); transform-origin: 0 50%; border-radius: 12px 0 0 12px; }
+      .bite .cut2 { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--r); }
+      .dots { display: grid; grid-template-columns: repeat(10, 34px); gap: 12px; margin-top: 18px; }
+      .dots i { width: 34px; height: 34px; border-radius: 50%; background: #E4E2EA; position: relative; display: block; }
+      .dots i.mk::after { content: ""; position: absolute; left: 44px; top: -8px; width: 3px; height: 50px; background: var(--ink); }
+      .dlab { position: absolute; font: 700 20px/1.25 "Inter"; white-space: nowrap; }
+      .score { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+      .score .sc { font: 900 96px/1 "Inter"; }
+      .crit { display: flex; align-items: center; gap: 12px; font: 600 21px/1.6 "Inter"; white-space: nowrap; }
+      .crit b { display: inline-block; width: 26px; height: 26px; border-radius: 50%; background: #E4E2EA; color: #fff; font: 800 16px/26px "Inter"; text-align: center; }
+      .giant { position: absolute; font: 900 200px/1 "Inter"; letter-spacing: -0.04em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .giant small { font-size: 0.32em; font-weight: 800; letter-spacing: 0; margin-left: 0.12em; }
+      .giant .gk { display: block; font: 700 26px/1.3 "Inter"; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); margin-bottom: 10px; }
+      .curve { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
+      .curve .cv { fill: none; stroke: var(--p); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+      .curve .cvh { fill: var(--p); }
+      .strip { position: absolute; left: var(--col-x); top: 300px; width: var(--col-w); }
+      .strip .sk { font: 600 16px/1.3 "Inter"; letter-spacing: 0.18em; color: var(--mute); }
+      .strip .sr { display: flex; gap: 34px; margin-top: 10px; }
+      .strip .si b { display: block; font: 800 40px/1.1 "Inter"; white-space: nowrap; }
+      .strip .si small { font: 500 17px/1.3 "Inter"; color: var(--mute); }
+      .mods { position: absolute; left: var(--col-x); top: 470px; width: var(--col-w); }
+      .mods div { font: 800 34px/1.3 "Inter"; color: #C9C6D4; white-space: nowrap; }
+
+      /* bridge chip (m1) */
+      #chip { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 14px; padding: 14px 26px 14px 18px; border-radius: 999px;
+              background: #fff; border: 1px solid #E2DEF3; box-shadow: 0 18px 40px rgba(40, 30, 90, 0.14), 0 2px 6px rgba(40, 30, 90, 0.08);
+              font: 600 28px/1.2 "Inter"; white-space: nowrap; z-index: 50; }
+      #chip i { width: 18px; height: 18px; border-radius: 50%; background: var(--p); box-shadow: 0 0 0 6px var(--pl); }
+
+      /* end card (dark) */
+      #dark { background: var(--dark); }
+      #endc { color: var(--dark-ink); }
+      .lock { position: absolute; display: flex; align-items: center; gap: 18px; font: 900 44px/1 "Inter"; letter-spacing: -0.02em; }
+      .lock img { width: 64px; height: 64px; }
+
+      /* captions: .cap2 (92 px, 2-4-word groups, always on while the VO speaks) */
+      .cap2 { position: absolute; left: 0; width: 1920px; top: var(--cap-top); text-align: center; white-space: nowrap; }
+      .cap2 span { display: inline-block; font: 900 var(--cap-size)/1.05 "Inter"; letter-spacing: -0.02em; color: #fff; -webkit-text-stroke: 8px #140f33; paint-order: stroke fill; text-shadow: 0 3px 10px rgba(20, 15, 51, 0.28); }
+      .cap2 span + span { margin-left: 0.26em; }
+      .cap2 span.em { color: #c9bcff; }
+      #draft { display: none; position: absolute; left: 40px; top: 1036px; font: 600 15px/1.2 "Inter"; letter-spacing: 0.06em; color: #A29EB3; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="16.7333" data-width="1920" data-height="1080">
+      <div id="bg" class="layer"></div>
+      <div id="gridlines" class="layer"></div>
+      <div id="glowR" class="layer"></div>
+      <div id="glowG" class="layer"></div>
+      <div id="dark" class="layer"></div>
+      <div id="titles" class="layer"></div>
+      <div id="cardwrap" class="layer"><div id="cardtilt"><div id="card"><div id="sweep"></div></div></div></div>
+      <div id="callouts" class="layer"></div>
+      <div id="giants" class="layer"></div>
+      <div id="fxlayer" class="layer"><div id="slab"></div></div>
+      <div id="chip"><i></i><span class="num">1 đơn · 499.000 ₫</span></div>
+      <div id="endc" class="layer"></div>
+      <div id="captions" class="layer"></div>
+      <!--FOOTAGE:BEGIN-->
+      <!--FOOTAGE:END-->
+      <div id="draft">draft</div>
+      <audio id="mix" src="assets/audio/mix.m4a" data-start="0" data-duration="16.7333" data-track-index="10" data-volume="1"></audio>
+    </div>
+
+    <script src="data/grid.js"></script>
+    <script src="data/captions.js"></script>
+    <script src="data/cuts.js"></script>
+    <script src="data/engine-cfg.js"></script>
+    <script src="data/motion-cfg.js"></script>
+    <script src="lib/engine.js"></script>
+    <script src="lib/motion-kit.js"></script>
+    <script>window.SCENES = window.SCENES || {};</script>
+    <!--SCENES:BEGIN (one <script> per chapter, file name = chapter key e01, e02 ...)-->
+    <script src="scenes/e01.js"></script>
+    <script src="scenes/e02.js"></script>
+    <!--SCENES:END-->
+    <script>
+      (function () {
+        const T = { duration: window.GRID.duration };
+        if (Math.abs(+document.getElementById("root").dataset.duration - T.duration) > 0.001) throw new Error("root data-duration != grid.duration");
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["main"] = tl;
+        const HF = (window.HF = window.HF_ENGINE(tl, window.GRID, window.CAPS));
+        gsap.set("#chip", { autoAlpha: 0 });
+        gsap.set("#dark", { autoAlpha: 0 });
+        gsap.set(["#glowR", "#glowG"], { autoAlpha: 0 });
+        Object.keys(HF.CH).forEach((k) => {                   // every chapter in grid.json MUST have a scene
+          if (!window.SCENES[k]) throw new Error("missing scene " + k);
+          window.SCENES[k](HF, HF.CH[k]);
+        });
+        window.MOTION_KIT(HF, window.MOTION_CFG);             // generic motion layer (after every scene, before captions)
+        HF.captions();
+        tl.set({}, {}, T.duration);
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+/* tokens.css - shared look of the film. ONE accent colour (violet); green/red ONLY for profit/loss (good/bad) numbers.
+   Every scene READS these, never redefines them. Ban-list (taste-and-banlist.md): no neon glow, no blur filter,
+   no bouncy easing, no saturated gradient floods, no CSS transitions.
+   Fonts are NOT bundled (licence + size): download Inter (variable) and IBM Plex Serif Italic / Bold Italic from Google Fonts
+   (both SIL OFL 1.1) into assets/fonts/ with the file names below - see engine/README.md. */
+@font-face { font-family: "Inter"; src: url("assets/fonts/Inter-var.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+@font-face { font-family: "PlexI"; src: url("assets/fonts/IBMPlexSerif-Italic.ttf") format("truetype"); font-style: italic; font-weight: 400; font-display: block; }
+@font-face { font-family: "PlexI"; src: url("assets/fonts/IBMPlexSerif-BoldItalic.ttf") format("truetype"); font-style: italic; font-weight: 700; font-display: block; }
+:root {
+  --bg: #F4F3EF; --ink: #16132B; --mute: #8C889D; --line: #E3E1DA;
+  --p: #6952E0; --pl: #EDE9FF;                 /* the ONLY accent - swap for the client's brand colour */
+  --g: #1FAD53; --gl: #E3F6EA;                 /* good / profit only */
+  --r: #DD3C3C; --rl: #FBE7E7;                 /* bad / loss only */
+  --app: #EEEDF4; --card: #FFFFFF; --slot: #E4E2EA; --slot-ink: #6E6A84;
+  --wait: #B9B6C4;                             /* grey "not measured yet" placeholder */
+  --dark: #0F0D1C; --dark-ink: #F4F3FA;
+  /* layout 1920x1080: left title column + right UI card + caption band */
+  --col-x: 110px; --col-w: 690px; --col-top: 190px;
+  --card-x: 880px; --card-y: 110px; --card-w: 930px; --card-h: 640px; --card-r: 22px;
+  --cap-top: 792px; --cap-size: 92px;
+  --ease-in: cubic-bezier(.2,.7,.2,1);
+}

@@ -1,0 +1,43 @@
+# FEATURE MAP — kết quả bước RECON (chỉ đọc, ~5′) trước khi viết kịch bản quay.
+# Hướng dẫn: references/capture-script-by-app-type.md §1. Sinh nháp kịch bản:
+#   python scripts/capture/capture_log_to_edit.py draft --feature-map feature-map.yaml --out capture-script.draft.yaml
+# app_type: form_calculator | dashboard | table_crud | ai_chat | editor_canvas | website_landing | multistep_flow | mobile_responsive
+# beat:     hook | problem | feature1 | feature2 | feature3 | proof | cta   (để trống = không dùng; data_ok: false thì KHÔNG gán beat)
+# selector ưu tiên: text= / aria= / testid= / role= → CSS id/name → class (tránh class sinh tự động) → toạ độ (cuối cùng)
+
+app: "<tên app>"
+base_url: "https://<app>.example"
+app_type: form_calculator
+web_data: "footage/web-data-<YYYY-MM-DD>.md"
+capture:                        # đo lúc RECON: window.devicePixelRatio, innerWidth/innerHeight sau F11
+  browser_zoom: 100
+  dpr: 1.25
+  viewport_css: [1536, 808]
+  viewport_origin_px: [0, 70]
+  crop: "crop=1920:1010:0:70"
+  max_zoom: 1.5
+forbidden_pages: ["/admin"]
+global_avoid:
+  - {selector: "header .user-email", reason: "email"}
+never_click: ["text=Lưu", "text=Xoá", "text=Gửi"]
+
+routes:
+  - route: "/batches/<id>/edit"
+    purpose: "tính lãi/lỗ 1 lô hàng khi gõ giá"
+    data_ok: true                           # có dữ liệu thật, đúng tiền tệ, không trống
+    empty_reason: ""                        # data_ok false → ghi lý do: trống / demo USD / 0 đ
+    trigger: {action: type, selector: "input[name=price]", fallback_text: "Giá bán", value: "899000"}
+    wow_element: {selector: "text=Lợi nhuận ròng", fallback_text: "Lợi nhuận ròng", number: "8.879.840"}
+    sensitive: []
+    beat: hook
+  - route: "/compare"
+    type: dashboard                         # route khác dạng với app_type chung
+    purpose: "so 2 lô cạnh nhau"
+    data_ok: true
+    trigger: {action: click, selector: "text=Batch B", fallback_text: "Batch B"}
+    wow_element: {selector: "text=nhỉnh hơn", fallback_text: "nhỉnh hơn", number: "11 – 0 điểm"}
+    beat: proof
+  - route: "/marketing"
+    purpose: "ngân sách marketing"
+    data_ok: false
+    empty_reason: "empty state"              # → không quay; nếu cần nói tới thì thẻ chữ trên ảnh chụp mờ

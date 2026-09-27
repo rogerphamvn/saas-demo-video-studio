@@ -1,0 +1,9 @@
+# Python 3.11+ ; ffmpeg + ffprobe must be on PATH; Node.js 18+ for `npx hyperframes`.
+numpy>=1.26
+scipy>=1.11
+Pillow>=10.0
+PyYAML>=6.0
+requests>=2.31        # only for the optional OpenAI ASR calls (caption alignment / 2nd-ASR check)
+soundfile>=0.12       # VieNeu worker (installed inside the VieNeu virtualenv, not the main one)
+# optional: stills of the composition without rendering
+# playwright>=1.45  &&  python -m playwright install chromium

@@ -1,0 +1,597 @@
+# CAPTURE SCRIPT v3 — ProfitBase (BẢN ĐÃ LÀM SẠCH cho repo: tên lô cũ, id, URL thật, HWND đã thay bằng <placeholder>) · 15 shot R01–R15 → 13 chương storyboard B "Chapter tour" (U1 user 27/09) + số khổng lồ C ở 3 drop
+# Soạn: Agent A (Ca 0) 27/09/2026 18:1x · VÒNG 2 18:4x (sửa theo nghiệm thu Opus stand-in + quyết định user "ok hết"). Nguồn số DUY NHẤT: footage/web-data-v3.md (mọi expected_on_screen/highlight.text có nguyên văn ở đó).
+# Lint (G0, BẢN VÁ v3):  python scripts/capture/capture_log_to_edit.py lint --script capture/capture-script-v3.yaml --web-data footage/web-data-v3.md
+# Build sau quay:         python scripts/capture/capture_log_to_edit.py build --script capture/capture-script-v3.yaml --log footage/capture-log.jsonl --markers footage/markers.txt --out data/
+# Bản vá v3 (tools/capture_log_to_edit.v3.diff): action zoom/zoom_out (zoom TẠI NGUỒN ≤ 2.0×) · select · slider · key · inject · rec_stop ·
+#   rec_start THEO FILE (markers `rec_start <epoch> <shot>`) · capture.crop_top thay crop.
+# VÒNG 2: action rec_start (bước TRƯỚC nó = OFF-CAMERA) · shows_old_lots:true (lint FAIL nếu nằm trong khoảng ghi) · expect_value trên mọi type
+#   (agent đọc lại value ô sau khi gõ, ghi vào capture-log; lệch = retake) · lô Demo DUY NHẤT: "Demo · Lot A" , KHÔNG lưu lô thứ 2.
+#
+# LUẬT QUAY (mỗi shot):
+#  1. 1 file/shot (gfxcapture HWND, capture_cursor=0, 60 fps, CRF 14, -g 60) → ghi `rec_start <epoch> <shot>` vào footage/markers.txt ngay khi ffmpeg chạy.
+#  2. Đầu mỗi Ca: tiêm scripts/capture/js/sdv-clean.js (cấu hình privacy riêng) rồi scripts/capture/js/sdv-capture-helpers.js; chạy __p11() (email/Super Admin/ADMIN/Opus/Phase 1/NEW = 0).
+#     Full navigate (reload) XOÁ CSS → tiêm lại; đi route bằng sidebar/pushState thì CSS còn.
+#  3. Mỗi step: gọi __sdvLog/__sdvZoom… lấy 1 dòng JSON → append footage/capture-log.jsonl TRƯỚC click điều hướng. JS TUẦN TỰ, cấm song song (lỗi 08:04).
+#  4. Gõ = extension `type` từng ký tự 150 ms (không paste, không __sdvSet trên hình). Giữ ≥1 s sau khi số dừng; hover ≥1.5 s; 0.4 s trên mục menu trước khi bấm.
+#  5. Số trên màn ≠ expected_on_screen → DỪNG, đo lại, sửa web-data + script, lint lại (không "quay đại").
+#  6. D12 (v3.2): mỗi chương HERO có 1 lần `zoom` 1.8× giữ ≥ 1.5 s (nguồn macro→pull-back) — đã ghi thành step.
+#  7. KHÔNG foreground khi user chưa báo "sẵn sàng" (CẦN MÁY YÊN — phiên chính báo user).
+
+project: "ProfitBase — v3.2 storyboard B Chapter tour (13 chương, 20 màn)"
+base_url: "https://<your-app>.example"
+web_data: "footage/web-data-v3.md"
+vo_script: "vo/v3/script.txt"      # 13 câu PLAN-v3.1 §4 (Agent B)
+
+capture:
+  browser_zoom: 100
+  dpr: 1.0                      # ĐO P9 27/09 20:17 foreground: Chrome F11 (display-mode fullscreen) + extension ép viewport 1920×1010 @1 (JS: innerWidth 1920 · innerHeight 1010 · dpr 1)
+  viewport_css: [1920, 1010]    # ĐO P9: khung gfxcapture 1920×1080; ô vuông CSS top:500 → y 570, bottom:0 → y 1060–1079, top:0 → y 70 (x khớp 1:1)
+  crop_top: 70                  # ĐO P9: dải trắng debugger y 0–69 (pixel (20,69)=255 trắng, (20,70) = nền trang). KHÔNG có dải → trang tràn 1080 (khung 20:14) = offset 0 ⇒ mỗi shot kiểm bar_present
+  viewport_origin_px: [0, 70]   # = [0, crop_top]
+  crop_top_measured: true       # P9 20:17 + ĐO LẠI 21:56 sau relaunch Chrome : đỏ CSS y500→570, xanh bottom→1079, dải y0–69 ⇒ GIỐNG HỆT
+  debugger_bar_rule: >-
+    Cửa sổ gfxcapture KHÔNG được có dải "'Claude' đã bắt đầu gỡ lỗi cho trình duyệt này" thay đổi giữa shot. Chọn 1:
+    (a) dải hiện suốt buổi → đo crop_top SAU khi dải ổn định, mọi shot cùng số; (b) bấm đóng dải trước rec_start mỗi shot và đo crop_top khi đã đóng;
+    dải bật/tắt giữa shot = retake (khung nội dung nhảy). Ghi lựa chọn vào markers.txt.
+  max_zoom: 1.5                 # camera hậu kỳ
+  max_source_zoom: 2.0          # zoom TẠI NGUỒN (action zoom)
+
+forbidden_pages: ["/admin", "/access-map", "/policy-pulse", "/logic-map", "/system-architecture", "/profile", "/sales", "/changelog"]
+global_avoid:
+  - {selector: "aside a[href='/profile']", reason: "email + Super Admin chân sidebar — sdv-clean thay bằng 'ProfitBase Demo'"}
+  - {selector: "text=Admin Dashboard", reason: "nhóm quản trị sidebar (textContent 'Admin Dashboard', hiển thị HOA) — sdv-clean ẩn"}
+  - {selector: "aside a[href='/logic-map']", reason: "mục quản trị trong HỆ THỐNG — sdv-clean ẩn cùng /system-architecture /access-map /policy-pulse"}
+  - {selector: "text=<tên model AI>", reason: "tên model AI header /expert — sdv-clean cắt đuôi"}
+  - {selector: "text=Phase 1: chat", reason: "ghi chú dev /expert — sdv-clean ẩn"}
+  - {selector: "aria=Mở P&L AI Agent", reason: "nút chat nổi — sdv-clean ẩn"}
+  - {selector: "text=<lô cũ 1>", reason: "tên lô CŨ trong Gợi Ý Hôm Nay — sdv-clean ẩn dòng"}
+  - {selector: "text=<lô cũ 2>", reason: "tên lô CŨ ở /batches, /promotions/new — tránh khung"}
+never_click:
+  - "text=Xóa"
+  - "aria=Xoá khoản này"
+  - "text=Áp dụng giá này"
+  - "text=Áp làm giá lô"
+  - "text=Lưu thành định mức"
+  - "text=Lưu chương trình"
+  - "text=Xóa lịch sử chat"
+  - "text=Cuộc trò chuyện mới"
+  - "text=Đồng bộ"
+  - "text=Bulk Import"
+  - "text=Tạo Folder"
+  - "text=Select All"             # R08b: chọn tay 4 SKU DEMO (Select All kéo cả SKU TEST cũ)
+  - "dialog:text=Tạo Chiến Dịch"   # nút TRONG dialog KOC (nút mở dialog ở trang danh sách thì được bấm — selector khác: role=button:Tạo Chiến Dịch)
+  - "dialog:text=Tạo"             # dialog Tạo Dự Án
+
+# ─────────────────────────────── CA 1 · VẬN HÀNH (R01 → R04) ───────────────────────────────
+shots:
+  - id: R01-boms
+    chapter: E6
+    app_type: table_crud
+    vo_line: "Tự sản xuất? Khai nguyên liệu một lần, giá vốn từng sản phẩm tự chạy ra. Thêm một dòng, con số tự tính lại."
+    anchor_word: "giá vốn"
+    duration_target: 35.0
+    url: "/boms"
+    preconditions:
+      - "BOM 'Demo · Nến SWEET WHISPER' CHỈ có 2 dòng (Sáp 200 g + Ly 1 cái, 32.200 ₫/sp) — đọc lại /boms trước khi quay; đã có Bấc/Công đổ nến = take trước đã Lưu → tạo lại bằng 'nhân bản' KHÔNG được (không có trong §2) → báo phiên chính"
+      - "sdv-clean + helpers đã tiêm, __p11() sạch"
+      - "scrollY 0; dialog đóng"
+    steps:
+      - {action: navigate, value: "/boms", hold_s: 1.0}
+      - {action: click, selector: "role=tab:Nguyên vật liệu", fallback_text: "Nguyên vật liệu", hold_s: 0.8}
+      - {action: hover, selector: "text=Demo · Sáp đậu nành", hold_s: 1.5}
+      - {action: click, selector: "text=Demo · Sáp đậu nành", note: "bấm BÚT CHÌ cùng hàng (lucide-pencil) — không bấm thùng rác", fallback_text: "Sáp đậu nành"}
+      - {action: hover, selector: "text=Đơn giá tự tính", hold_s: 1.5}
+      - {action: zoom, selector: "text=Bảng giá theo số lượng (NCC báo)", level: 1.8, hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.6}
+      - {action: click, selector: "text=Huỷ", note: "đóng dialog NVL, KHÔNG Lưu, KHÔNG 'Áp làm giá lô'"}
+      - {action: click, selector: "role=tab:Định mức sản phẩm", fallback_text: "Định mức sản phẩm", hold_s: 0.8}
+      - {action: click, selector: "text=Demo · Nến SWEET WHISPER", note: "bút chì cùng thẻ", fallback_text: "Nến SWEET WHISPER"}
+      - {action: click, selector: "text=Thêm dòng"}
+      - {action: select, selector: "text=Chọn nguyên liệu…", value: "Demo · Bấc cotton", note: "Radix select: mở, rê 0.4 s, Enter"}
+      - {action: type, selector: "input[placeholder='Lượng dùng']", fallback_text: "Lượng dùng", value: "1", type_delay_ms: 150, expect_value: "1", note: "ô Lượng dùng dòng thứ 3 (ô trống)"}
+      - {action: hold, hold_s: 1.0}
+      - {action: scroll_to, selector: "text=Chi phí khác trong định mức", hold_s: 0.6, note: "container cuộn = [role=dialog]"}
+      - {action: click, selector: "text=Thêm chi phí khác"}
+      - {action: type, selector: "input[placeholder='VD: Công gia công']", value: "Công đổ nến", type_delay_ms: 150, expect_value: "Công đổ nến"}
+      - {action: type, selector: "input[placeholder='0']", value: "8000", type_delay_ms: 150, expect_value: "8000"}
+      - {action: zoom, selector: "text=COGS / 1 sản phẩm", level: 1.8, hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.6}
+      - {action: hover, selector: "text=Số hiệu định mức", hold_s: 1.0}
+      - {action: click, selector: "text=Lưu định mức", note: "GHI object Demo (P1) — được phép"}
+      - {action: hold, hold_s: 1.5}
+    camera:
+      - {t_rel: 6.0, zoom_to: "text=Đơn giá tự tính", level: 1.4, ease: "power3.inOut", zoom_out_at: 9.0}
+      - {t_rel: 24.0, zoom_to: "text=Thêm dòng", level: 1.3, ease: "power3.inOut", zoom_out_at: 27.0}
+    highlight:
+      - {selector: "text=Bảng giá theo số lượng (NCC báo)", kind: box, t_rel: 10.0, dur: 2.0}
+      - {selector: "text=COGS / 1 sản phẩm", kind: callout, text: "41.700 ₫", t_rel: 30.0, dur: 2.0}
+    cursor: ["text=Demo · Sáp đậu nành", "text=Thêm dòng", "text=Thêm chi phí khác", "text=Lưu định mức"]
+    expected_on_screen: ["86₫/g", "80₫/g", "75₫/g", "1.500 ₫", "Cộng thêm 8.000 ₫", "41.700 ₫", "ĐM-DEMO-01"]
+    avoid:
+      - {selector: "text=Định mức — <lô cũ> (V1)", reason: "BOM CŨ của user trong danh sách — khung zoom dialog, không lướt danh sách"}
+      - {selector: "text=Giá vốn hàng gốc (nhập TQ)", reason: "NVL CŨ trong thư viện — crop khỏi khung"}
+    9x16_focus: "text=COGS / 1 sản phẩm"
+
+  - id: R02a-chon-local
+    chapter: E2
+    app_type: form_calculator
+    vo_line: "Lô hàng này lãi hay lỗ? Gõ giá bán, gõ số lượng — cột bên phải trả lời ngay khi bạn còn đang gõ."
+    anchor_word: "lãi hay lỗ"
+    duration_target: 14.0
+    url: "/batches/new"
+    preconditions:
+      - "TAKE 1 (A+B) trên form MỚI — phí đang MẶC ĐỊNH (Phí Cố Định Sàn 9.5%) ⇒ được hover tooltip phí sàn ở take này"
+      - "log bbox nút 'Chọn Local' cho Chip Đơn (D12)"
+    steps:
+      - {action: navigate, value: "/batches/new", hold_s: 1.0}
+      - {action: hover, selector: "text=Amazon FBA, Cross-border E-commerce", hold_s: 1.2}
+      - {action: hover, selector: "text=Shopee, Lazada, TikTok Shop", hold_s: 1.2}
+      - {action: click, selector: "text=Chọn Local", note: "chỉ điều hướng /batches/new/local, KHÔNG tạo nháp (đo 08:00)"}
+      - {action: select, selector: "text=Không thuộc dự án", value: "Demo · Tranh Thép"}
+      - {action: key, selector: "text=Tên Batch", fallback_text: "Nhập tên batch", value: "ctrl+a", note: "XOÁ 'Batch Local Mới' (click ô rồi ctrl+a)"}
+      - {action: type, selector: "text=Tên Batch", fallback_text: "Nhập tên batch", value: "Demo · Lot A", type_delay_ms: 150, expect_value: "Demo · Lot A", note: "form này KHÔNG BAO GIỜ lưu (user 27/09)"}
+      - {action: key, selector: "text=Giá bán (VNĐ/unit)", value: "ctrl+a", note: "ô đang 200000 (mặc định)"}
+      - {action: type, selector: "text=Giá bán (VNĐ/unit)", value: "899000", type_delay_ms: 150, expect_value: "899000"}
+      - {action: key, selector: "text=Số lượng (units)", value: "ctrl+a", note: "ô đang 500 (mặc định)"}
+      - {action: type, selector: "text=Số lượng (units)", value: "30", type_delay_ms: 150, expect_value: "30"}
+      - {action: hold, hold_s: 1.5}
+      - {action: zoom, selector: "text=Kết Quả P", level: 1.8, hold_s: 1.8}
+      - {action: zoom_out, hold_s: 0.5}
+      - {action: scroll_to, selector: "text=Phí Cố Định Sàn", hold_s: 0.6, note: "nhãn ở y≈1499 tài liệu — ngoài khung đầu"}
+      - {action: hover, selector: "text=Phí Cố Định Sàn", note: "rê vào ⓘ ngay cạnh nhãn; ô đang 9.5% (mặc định)", hold_s: 2.5}
+      - {action: rec_stop}
+      - {action: inject, value: "OFF-CAMERA: __sdvFeesLikeLotA() gọi 2 lần cách 1 s, chỉ đi tiếp khi {ok:true} (web-data P2 cấu hình II)"}
+    camera:
+      - {t_rel: 5.0, zoom_to: "text=Giá bán (VNĐ/unit)", level: 1.3, ease: "power3.inOut", zoom_out_at: 9.0}
+    highlight:
+      - {selector: "text=30 units × 899.000 ₫", kind: callout, text: "26.970.000 ₫", t_rel: 10.0, dur: 2.0}
+    cursor: ["text=Chọn Local", "text=Giá bán (VNĐ/unit)", "text=Số lượng (units)", "text=Phí Cố Định Sàn"]
+    expected_on_screen: ["Shopee, Lazada, TikTok Shop", "26.970.000 ₫", "30 units × 899.000 ₫", "verified 09/2026", "từ 23/05/2026"]
+    avoid: []
+    9x16_focus: "text=Kết Quả P"
+
+  - id: R02b-cogs
+    chapter: E3
+    app_type: form_calculator
+    vo_line: "Giá vốn bóc tới từng khoản: hàng gốc, bao bì, cước, thông quan — và khoản riêng của bạn, như cái khung tranh tám mươi hai nghìn."
+    anchor_word: "khung tranh"
+    duration_target: 16.0
+    url: "/batches/new/local"
+    preconditions: ["cùng form take 1, KHÔNG reload; phí đã = lô A (inject ok:true)", "scrollY 0"]
+    steps:
+      - {action: click, selector: "text=Bóc tách COGS (hàng nhập TQ)"}
+      - {action: key, selector: "text=Giá vốn hàng gốc", value: "ctrl+a", note: "ô mặc định 50000"}
+      - {action: type, selector: "text=Giá vốn hàng gốc", value: "181072", type_delay_ms: 150, expect_value: "181072"}
+      - {action: type, selector: "text=Bao bì / customize (NCC làm)", value: "44800", type_delay_ms: 150, expect_value: "44800", note: "ô trống"}
+      - {action: scroll_to, selector: "text=Khoản khác cấu thành COGS của sản phẩm này", hold_s: 0.6}
+      - {action: click, selector: "text=Thêm khoản chi phí"}
+      - {action: type, selector: "input[placeholder='VD: Công gia công']", value: "Khung tranh 40x60cm", type_delay_ms: 150, expect_value: "Khung tranh 40x60cm", note: "ô trống"}
+      - {action: type, selector: "text=SỐ TIỀN (₫/SẢN PHẨM)", value: "82000", type_delay_ms: 150, expect_value: "82000", note: "ô trống"}
+      - {action: zoom, selector: "text=Tổng COGS / đơn", level: 1.8, hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.5}
+      - {action: hover, selector: "text=Tổng này tự đổ vào ô COGS", hold_s: 1.5}
+      - {action: hover, selector: "text=Lưu thành định mức", hold_s: 1.0, note: "CHỈ rê, không bấm (never_click)"}
+    camera:
+      - {t_rel: 2.0, zoom_to: "text=Giá vốn hàng gốc", level: 1.3, ease: "power3.inOut", zoom_out_at: 6.0}
+    highlight:
+      - {selector: "text=Tổng COGS / đơn", kind: callout, text: "307.872 ₫", t_rel: 11.0, dur: 2.0}
+    cursor: ["text=Bóc tách COGS (hàng nhập TQ)", "text=Thêm khoản chi phí", "text=Tổng COGS / đơn"]
+    expected_on_screen: ["181072", "44800", "82000", "Khung tranh 40x60cm", "307.872"]
+    avoid: []
+    9x16_focus: "text=Tổng COGS / đơn"
+
+  - id: R02c-tien-chay
+    chapter: E4
+    app_type: form_calculator
+    vo_line: "Hoà vốn ở đơn thứ chín. Nhưng gom đủ tiền hàng — đơn thứ mười ba. Mỗi đơn bán, bao nhiêu thật sự về túi."
+    anchor_word: "về túi"
+    duration_target: 14.0
+    url: "/batches/new/local"
+    preconditions: ["cùng form; COGS 307.872 đã đổ"]
+    steps:
+      - {action: scroll_to, selector: "text=Break-Even Point", hold_s: 0.6}
+      - {action: hover, selector: "text=Break-Even Point", hold_s: 1.5}
+      - {action: hover, selector: "text=Thu Hồi Vốn Tiền Hàng", hold_s: 1.5}
+      - {action: zoom, selector: "text=TIỀN CHẠY THẾ NÀO KHI BÁN 1 ĐƠN", level: 1.8, hold_s: 2.5}
+      - {action: hover, selector: "text=Tiền mặt về túi mỗi đơn", hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.5}
+      - {action: hover, selector: "text=Con số lớn là vốn tiền hàng", hold_s: 1.5}
+    camera:
+      - {t_rel: 1.0, zoom_to: "text=Break-Even Point", level: 1.4, ease: "power3.inOut", zoom_out_at: 4.0}
+    highlight:
+      - {selector: "text=Break-Even Point", kind: callout, text: "9 units", t_rel: 1.5, dur: 1.8}
+      - {selector: "text=Thu Hồi Vốn Tiền Hàng", kind: callout, text: "13 units", t_rel: 3.0, dur: 1.8}
+      - {selector: "text=Tiền mặt về túi mỗi đơn", kind: callout, text: "717.200", t_rel: 7.0, dur: 2.5}
+    cursor: ["text=Break-Even Point", "text=Thu Hồi Vốn Tiền Hàng", "text=Tiền mặt về túi mỗi đơn"]
+    expected_on_screen: ["9 units", "8.091.000", "13 units", "9.236.160", "43% của lô", "−179.800", "−2.000", "717.200"]
+    avoid:
+      - {selector: "text=Lợi nhuận gộp (sau COGS + đóng gói)", reason: "số gộp thứ 2 (17.673.840) — không cùng khung với Gross Profit 17.733.840"}
+    9x16_focus: "text=TIỀN CHẠY THẾ NÀO KHI BÁN 1 ĐƠN"
+
+  - id: R02d-kich-ban-do-xanh
+    chapter: E5
+    app_type: form_calculator
+    vo_line: "Chỉ livestream, bơm ads, hay chạy full marketing — mỗi kịch bản một con số. Và khi bạn tiêu quá tay, nó nói thẳng: lỗ."
+    anchor_word: "lỗ"
+    duration_target: 18.0
+    url: "/batches/new/local"
+    preconditions: ["cùng form", "slider Giả lập số lượng đã kéo về 30 OFF-CAMERA trước rec_start (mặc định 500 → '+169.909.160' phóng đại)"]
+    steps:
+      - {action: scroll_to, selector: "text=Giả Lập Chiến Lược Nhanh", hold_s: 0.6}
+      - {action: click, selector: "role=button:Chỉ Livestream", hold_s: 0.9}
+      - {action: click, selector: "role=button:Bơm Ads mạnh", hold_s: 0.9, note: "= 'Kịch bản gốc' 8.879.840"}
+      - {action: click, selector: "role=button:Full Marketing", hold_s: 0.9, note: "BỎ Thuê KOL/KOC (Δ 0 ₫ = trùng số Bơm Ads)"}
+      - {action: scroll_to, selector: "text=Phí Quảng Cáo (Ads nội sàn)", hold_s: 0.6}
+      - {action: key, selector: "text=Phí Quảng Cáo (Ads nội sàn)", value: "ctrl+a", note: "ô đang 10"}
+      - {action: type, selector: "text=Phí Quảng Cáo (Ads nội sàn)", value: "43", type_delay_ms: 150, expect_value: "43", note: "GÕ ô (không phải slider): 10 → 43 = 'Lợi nhuận âm!' (quyết định phiên chính 27/09)"}
+      - {action: zoom, selector: "text=Lợi nhuận âm!", level: 1.8, hold_s: 1.8}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: key, selector: "text=Phí Quảng Cáo (Ads nội sàn)", value: "ctrl+a", note: "ô đang 43"}
+      - {action: type, selector: "text=Phí Quảng Cáo (Ads nội sàn)", value: "10", type_delay_ms: 150, expect_value: "10", note: "về xanh — rơi DROP 2 (ô 17)"}
+      - {action: hold, hold_s: 1.5}
+      - {action: scroll_to, selector: "text=Lưu Batch", hold_s: 0.4}
+      - {action: hover, selector: "text=Lưu Batch", hold_s: 0.8, note: "CHỈ rê tới nút — KHÔNG bấm (user 27/09: không lưu lô thứ 2, trên hình lẫn ngoài hình)"}
+      - {action: rec_stop}
+      - {action: navigate, value: "/batches", note: "OFF-CAMERA rời form (bỏ nháp) — không bấm Lưu"}
+    camera:
+      - {t_rel: 0.5, zoom_to: "text=Lãi ròng dự kiến (Mô phỏng)", level: 1.3, ease: "power3.inOut", zoom_out_at: 5.0}
+    highlight:
+      - {selector: "text=Lãi ròng dự kiến (Mô phỏng)", kind: callout, text: "11.576.840 ₫", t_rel: 1.5, dur: 0.9}
+      - {selector: "text=Lãi ròng dự kiến (Mô phỏng)", kind: callout, text: "6.182.840 ₫", t_rel: 4.2, dur: 0.9}
+      - {selector: "text=Lợi nhuận âm!", kind: box, t_rel: 9.5, dur: 1.8}
+    cursor: ["role=button:Chỉ Livestream", "role=button:Bơm Ads mạnh", "role=button:Full Marketing", "text=Phí Quảng Cáo (Ads nội sàn)", "text=Lưu Batch"]
+    expected_on_screen: ["Chỉ Livestream", "11.576.840 ₫", "8.879.840 ₫", "6.182.840 ₫", "Lợi nhuận âm! Thua lỗ 20.260 ₫ trên 30 units.", "-20.260 ₫", "Kịch bản gốc"]
+    avoid: []
+    9x16_focus: "text=Lợi nhuận âm!"
+
+  - id: R03-danh-sach
+    chapter: E12
+    app_type: table_crud
+    vo_line: "(montage E12) Kho, nhập hàng, KOC, dự án, trợ lý AI — tất cả trong một chỗ."
+    anchor_word: "tất cả"
+    duration_target: 6.0
+    url: "/batches"
+    preconditions: ["KHÔNG cuộn: chỉ 2–3 hàng Demo trên cùng (lô cũ từ hàng 3 trở xuống)", "đi bằng sidebar (giữ CSS)"]
+    steps:
+      - {action: navigate, value: "/batches", hold_s: 1.0}
+      - {action: hover, selector: "text=Demo · Lot A", hold_s: 1.5}
+      - {action: zoom, selector: "text=Healthy · 32.9%", level: 1.6, hold_s: 1.5}
+      - {action: zoom_out, hold_s: 0.4}
+    camera: []
+    highlight: []
+    cursor: ["text=Demo · Lot A"]
+    expected_on_screen: ["Healthy · 32.9%", "Cảnh báo · 12.9%", "8.879.840 ₫"]
+    avoid:
+      - {selector: "text=<lô cũ 2>", reason: "lô CŨ (hàng đỏ gần nhất) — LỆCH PLAN: bỏ 'hàng xanh cạnh hàng đỏ'"}
+    9x16_focus: "text=Healthy · 32.9%"
+
+  - id: R04-compare
+    chapter: E7
+    app_type: dashboard
+    vo_line: "Hai lô đặt cạnh nhau. Không chỉ lô nào lãi hơn — mà lô nào đáng đổ vốn tiếp."
+    anchor_word: "đáng đổ vốn"
+    duration_target: 30.0
+    url: "/compare"
+    preconditions:
+      - "A = 'Demo · Lot A'  · B = '<lô cũ B>' (lô CŨ — user cho lên hình 27/09)"
+      - "combobox KHÔNG có ô tìm (đo 18:3x: 22 mục gồm <lô cũ 2>, <lô cũ 3>…) ⇒ chọn A và B OFF-CAMERA rồi mới rec_start"
+    steps:
+      - {action: navigate, value: "/compare", hold_s: 1.0}
+      - {action: select, selector: "text=Batch A", fallback_text: "Chọn batch...", value: "Demo · Lot A", shows_old_lots: true, note: "OFF-CAMERA"}
+      - {action: select, selector: "text=Batch B", fallback_text: "Chọn batch...", value: "<lô cũ B>", shows_old_lots: true, note: "OFF-CAMERA"}
+      - {action: rec_start}
+      - {action: hover, selector: "text=Biên ròng tốt hơn", hold_s: 1.2}
+      - {action: zoom, selector: "text=đang nhỉnh hơn (11 – 0 điểm)", level: 1.8, hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.5}
+      - {action: scroll_to, selector: "text=Ba lớp biên lợi nhuận", hold_s: 0.6}
+      - {action: hover, selector: "text=Ba lớp biên lợi nhuận", hold_s: 2.0, note: "rê cột → tooltip recharts"}
+      - {action: scroll_to, selector: "text=Bảng so sánh chi tiết", hold_s: 1.5}
+    camera:
+      - {t_rel: 3.0, zoom_to: "text=Biên ròng tốt hơn", level: 1.3, ease: "power3.inOut", zoom_out_at: 6.0}
+    highlight:
+      - {selector: "text=đang nhỉnh hơn (11 – 0 điểm)", kind: underline, text: "11 – 0 điểm", t_rel: 8.0, dur: 2.0}
+    cursor: ["text=Batch A", "text=Batch B", "text=Ba lớp biên lợi nhuận"]
+    expected_on_screen: ["11 – 0 điểm", "13 vs 16 đơn", "591.128", "354.843", "BEP 9 đơn (30% lô) vs 12 đơn (40% lô)"]
+    avoid:
+      - {selector: "text=Nhờ Giám đốc Tài chính phân tích", reason: "PLAN có bấm; câu trả lời AI CHƯA ĐO (không tất định) → bỏ khỏi take chính, nếu quay thì take riêng + không dùng số"}
+    9x16_focus: "text=đang nhỉnh hơn (11 – 0 điểm)"
+
+  # ─────────────────────────────── CA 2 · TĂNG TRƯỞNG + KHO (R05 → R08) ───────────────────────────────
+  - id: R05-promo
+    chapter: E8
+    app_type: form_calculator
+    vo_line: "Giảm hai mươi phần trăm có lãi không? Câu trả lời thật phải trừ cả những đơn đằng nào khách cũng mua. Chỗ này trừ — và báo ngay khi không mức lift nào cứu nổi."
+    anchor_word: "không mức lift nào"
+    duration_target: 30.0
+    url: "/promotions/new"
+    preconditions:
+      - "chọn batch 'Demo · Lot C' OFF-CAMERA (danh sách thẻ lộ tên lô cũ + '$899,000') rồi mới rec_start"
+      - "ô Mức giảm % = 15 (mặc định); lift 40; trung thực 10; 14 ngày"
+    steps:
+      - {action: hover, selector: "text=BASELINE (TỪ BATCH)", hold_s: 1.5}
+      - {action: select, selector: "text=Giảm %", value: "Giảm %", note: "mở dropdown, rê 4 mục Giảm % · Giảm số tiền · Mua 1 tặng 1 · Freeship (0.4 s/mục), chọn lại Giảm % — LỆCH PLAN: 1 dropdown, không 4 nút"}
+      - {action: key, selector: "text=Tên chương trình", value: "ctrl+a", note: "ô đang 'Chương trình khuyến…'"}
+      - {action: type, selector: "text=Tên chương trình", value: "Demo · Khuyến mãi 14 ngày", type_delay_ms: 150, expect_value: "Demo · Khuyến mãi 14 ngày", note: "KHÔNG có % trong tên (tránh 'Giảm 20%' cạnh 'Lãi: $89')"}
+      - {action: key, selector: "text=Mức giảm %", value: "ctrl+a", note: "ô đang 15"}
+      - {action: type, selector: "text=Mức giảm %", value: "20", type_delay_ms: 150, expect_value: "20"}
+      - {action: hold, hold_s: 1.2}
+      - {action: hover, selector: "text=Hệ số trung thực (%)", hold_s: 1.5}
+      - {action: hover, selector: "text=Giảm giá rò rỉ", hold_s: 1.5}
+      - {action: key, selector: "text=Mức giảm %", value: "ctrl+a"}
+      - {action: type, selector: "text=Mức giảm %", value: "30", type_delay_ms: 150, expect_value: "30", note: "→ 'Promo không thể hòa vốn'"}
+      - {action: zoom, selector: "text=Promo không thể hòa vốn", level: 1.8, hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: key, selector: "text=Mức giảm %", value: "ctrl+a"}
+      - {action: type, selector: "text=Mức giảm %", value: "5", type_delay_ms: 150, expect_value: "5", note: "về xanh 'Lãi: $89' đúng DROP 3 (ô 27)"}
+      - {action: hold, hold_s: 1.5}
+    camera:
+      - {t_rel: 8.0, zoom_to: "text=Cần lift ≥", level: 1.4, ease: "power3.inOut", zoom_out_at: 11.0}
+    highlight:
+      - {selector: "text=Cần lift ≥", kind: callout, text: "211%", t_rel: 8.5, dur: 2.0}
+      - {selector: "text=Promo không thể hòa vốn", kind: box, t_rel: 19.0, dur: 2.0}
+    cursor: ["text=Giảm %", "text=Mức giảm %", "text=Giảm giá rò rỉ"]
+    expected_on_screen: ["Lỗ: -$385", "Cần lift ≥ 211% để hòa vốn phần giảm giá", "Promo không thể hòa vốn", "Mức giảm (30.0%) sâu hơn biên đóng góp (29.5%)", "Lãi: $89", "Biên đóng góp $7 (29.5%)"]
+    avoid:
+      - {selector: "text=Lưu chương trình", reason: "không lưu (P4)"}
+    9x16_focus: "text=Net promo profit"
+
+  - id: R06-marketing
+    chapter: E9
+    app_type: multistep_flow
+    vo_line: "Ngân sách marketing chia theo kênh, ra KPI nội dung, gắn đúng lô hàng đang bán."
+    anchor_word: "lãi lỗ"
+    duration_target: 35.0
+    url: "/marketing/new"
+    preconditions:
+      - "LỆCH PLAN: /marketing đang 0 kế hoạch → mở cảnh ở /marketing/new"
+      - "'Áp dụng … vào P&L Batch' KHÔNG có trong kịch bản (chưa đo; bấm sẽ sửa lô Demo duy nhất → đổi mọi số) — vòng 2"
+      - "combobox Liên kết P&L KHÔNG có ô tìm (đo 18:3x: 19 mục gồm lô cũ) ⇒ chọn lô OFF-CAMERA rồi rec_start"
+    steps:
+      - {action: navigate, value: "/marketing/new", hold_s: 1.0}
+      - {action: select, selector: "text=Liên kết P", fallback_text: "Chọn batch...", value: "Demo · Lot A", shows_old_lots: true, note: "OFF-CAMERA"}
+      - {action: rec_start}
+      - {action: type, selector: "text=Tên kế hoạch", value: "Demo · Plan Shopee T10/2026", type_delay_ms: 150, expect_value: "Demo · Plan Shopee T10/2026", note: "ô trống"}
+      - {action: hover, selector: "text=Thông tin từ P", hold_s: 1.0, note: "KHÔNG zoom khối này: Gross Margin 40.0% / MKT 0% lệch batch (web-data R06)"}
+      - {action: type, selector: "text=Doanh thu mục tiêu (VND)", value: "40000000", type_delay_ms: 150, expect_value: "40000000", note: "ô trống"}
+      - {action: zoom, selector: "text=NS MKT", level: 1.6, hold_s: 1.8}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: click, selector: "text=Tiếp theo", hold_s: 1.5}
+      - {action: hover, selector: "text=Phân bổ kênh Marketing", hold_s: 1.5}
+      - {action: click, selector: "text=Tiếp theo", hold_s: 1.5}
+      - {action: hover, selector: "text=KOC Tiers", hold_s: 1.5}
+      - {action: click, selector: "text=Lưu Kế Hoạch", note: "GHI object Demo (P5)"}
+      - {action: hold, hold_s: 1.5}
+    camera:
+      - {t_rel: 6.0, zoom_to: "text=Doanh thu mục tiêu (VND)", level: 1.3, ease: "power3.inOut", zoom_out_at: 9.0}
+    highlight:
+      - {selector: "text=ROAS", kind: callout, text: "5.26x", t_rel: 12.0, dur: 2.0}
+    cursor: ["text=Tên kế hoạch", "text=Liên kết P", "text=Tiếp theo", "text=Lưu Kế Hoạch"]
+    expected_on_screen: ["7.600.000 ₫", "40.000.000 ₫", "5.26x", "+267%", "✅ Tổng kênh = 100%", "1.140.000 ₫", "3.420.000 ₫"]
+    avoid: []
+    9x16_focus: "text=Tóm Tắt Kế Hoạch"
+
+  - id: R07-koc
+    chapter: E12
+    app_type: dashboard
+    vo_line: "(montage E12) Kho, nhập hàng, KOC, dự án, trợ lý AI — tất cả trong một chỗ."
+    anchor_word: "KOC"
+    duration_target: 6.0
+    url: "/koc-tracker"
+    preconditions: ["thẻ 'Demo · KOC T10' đã có (seed 08:11)"]
+    steps:
+      - {action: navigate, value: "/koc-tracker", hold_s: 1.0}
+      - {action: zoom, selector: "text=GMV Target: 60.000.000₫", level: 1.6, hold_s: 1.5}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: click, selector: "role=button:Tạo Chiến Dịch", note: "chỉ MỞ dialog (nút trang danh sách)"}
+      - {action: hold, hold_s: 1.5}
+      - {action: click, selector: "aria=Close", fallback_text: "Close", note: "đóng — KHÔNG bấm Tạo Chiến Dịch trong dialog"}
+    camera: []
+    highlight: []
+    cursor: ["text=GMV Target: 60.000.000₫", "role=button:Tạo Chiến Dịch"]
+    expected_on_screen: ["Demo · KOC T10", "Target: 30 KOCs", "GMV Target: 60.000.000₫", "Ngân sách: 6.000.000₫"]
+    avoid: []
+    9x16_focus: "text=Demo · KOC T10"
+
+  - id: R08-kho
+    chapter: E12
+    app_type: table_crud
+    vo_line: "(montage E12) Kho, nhập hàng, KOC, dự án, trợ lý AI — tất cả trong một chỗ."
+    anchor_word: "Kho"
+    duration_target: 16.0
+    url: "/inventory"
+    preconditions:
+      - "LỆCH PLAN: trang TIẾNG ANH + USD; nút 'Refresh' (không 'Làm mới KPI')"
+      - "LỆCH PLAN: record-sales không dán nhiều dòng → 1 bản ghi thủ công DEMO-TT-2030 2 cái (đổi tồn 38→36: số bảng /inventory sau bước này = CHƯA ĐO, đo lại trước Ca 2)"
+      - "R08b procurement: chọn TAY 4 SKU DEMO (không Select All); 'Generate Allocation Plan' CHƯA ĐO có ghi DB không → Ca 2 mở Network trước, nếu POST ghi → chỉ quay tới bước chọn SKU"
+    steps:
+      - {action: navigate, value: "/inventory", hold_s: 1.0}
+      - {action: click, selector: "text=Refresh", hold_s: 1.2}
+      - {action: zoom, selector: "text=Need Restock", level: 1.6, hold_s: 1.5}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: hover, selector: "text=DEMO-TT-4060", hold_s: 1.2}
+      - {action: navigate, value: "/inventory/procurement", hold_s: 1.0}
+      - {action: click, selector: "text=DEMO-TT-4060", hold_s: 0.4}
+      - {action: click, selector: "text=DEMO-TT-2030", hold_s: 0.4}
+      - {action: click, selector: "text=DEMO-TT-1521", hold_s: 0.4}
+      - {action: click, selector: "text=DEMO-NEN-8OZ", hold_s: 0.8}
+    camera:
+      - {t_rel: 1.5, zoom_to: "text=Capital Locked", level: 1.3, ease: "power3.inOut", zoom_out_at: 4.0}
+    highlight: []
+    cursor: ["text=Refresh", "text=DEMO-TT-4060", "text=DEMO-NEN-8OZ"]
+    expected_on_screen: ["🔴 Need Restock", "73.3%", "11 days", "Stock: 8 | Velocity: 0.71/day", "Net Budget: $4,500.00"]
+    avoid:
+      - {selector: "text=<SKU cũ>", reason: "SKU TEST CŨ của user  — crop khỏi khung"}
+      - {selector: "text=Capital Locked", reason: "$8,593.18 gồm SKU cũ $8,000 — không callout số này"}
+    9x16_focus: "text=Need Restock"
+
+  # ─────────────────────────────── CA 3 · CHIẾN LƯỢC (R10 quay CUỐI) ───────────────────────────────
+  - id: R11-expert
+    chapter: E11
+    app_type: ai_chat
+    vo_line: "Cần một ý kiến? Hỏi thẳng chuyên gia tài chính AI — bằng chính con số của lô hàng bạn."
+    anchor_word: "Giám đốc Tài chính"
+    duration_target: 35.0
+    url: "/expert"
+    preconditions:
+      - "cột trái 'Chưa có cuộc trò chuyện' (user đã xoá 27/09) — read_page xác nhận trước rec_start"
+      - "sdv-clean: '• <tên model AI>' + 'Phase 1' ẩn, badge Enterprise GIỮ"
+      - "câu trả lời CHƯA ĐO: sau khi trả lời, đối chiếu số trong câu trả lời với web-data (13 units / 9.236.160 ₫); số lạ → không callout"
+    steps:
+      - {action: navigate, value: "/expert", hold_s: 1.0}
+      - {action: zoom, selector: "text=Enterprise", level: 1.6, hold_s: 1.5}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: hover, selector: "text=Tôi muốn chạy giảm 20% trong 14 ngày", hold_s: 1.5}
+      - {action: click, selector: "textarea"}
+      - {action: type, selector: "textarea", value: "Lô Demo Lot A, bán 899.000₫, 30 cái. Bán bao nhiêu cái thì gom đủ tiền hàng?", type_delay_ms: 60, expect_value: "Lô Demo Lot A, bán 899.000₫, 30 cái. Bán bao nhiêu cái thì gom đủ tiền hàng?", note: "textarea trống"}
+      - {action: key, value: "Enter"}
+      - {action: wait, hold_s: 20.0}
+      - {action: zoom, selector: "text=13", fallback_text: "gom đủ", level: 1.8, hold_s: 1.8, note: "SAU khi câu trả lời hiện: zoom CON SỐ payback trong câu trả lời (chọn phần tử chứa số khớp web-data 13 / 9.236.160 ₫; số lạ → zoom khối kết luận, KHÔNG callout)"}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: hold, hold_s: 2.0}
+    camera:
+      - {t_rel: 6.0, zoom_to: "textarea", level: 1.2, ease: "power3.inOut", zoom_out_at: 12.0}
+    highlight: []
+    cursor: ["text=Enterprise", "textarea"]
+    expected_on_screen: ["Enterprise", "Xin chào — hỏi bất cứ điều gì", "Tôi muốn chạy giảm 20% trong 14 ngày"]
+    avoid:
+      - {selector: "text=<tên model AI>", reason: "model AI"}
+    9x16_focus: "textarea"
+
+  - id: R12-ai-advisor
+    chapter: E12
+    app_type: ai_chat
+    vo_line: "(montage E12) Kho, nhập hàng, KOC, dự án, trợ lý AI — tất cả trong một chỗ."
+    anchor_word: "AI"
+    duration_target: 6.0
+    url: "/ai-advisor"
+    preconditions: ["vùng chat SẠCH (user xoá 27/09) — lời chào 👋 hiện; cách R11 ≥ 1 cảnh khi dựng"]
+    steps:
+      - {action: navigate, value: "/ai-advisor", hold_s: 1.0}
+      - {action: hover, selector: "text=Xin chào! Tôi là AI Advisor", hold_s: 1.2}
+      - {action: hover, selector: "text=Cảnh báo hết hàng", hold_s: 0.8}
+      - {action: click, selector: "text=Cảnh báo hết hàng", note: "gửi 1 lệnh (P8) — câu trả lời CHƯA ĐO"}
+      - {action: hold, hold_s: 2.0}
+    camera: []
+    highlight: []
+    cursor: ["text=Cảnh báo hết hàng"]
+    expected_on_screen: ["Xin chào! Tôi là AI Advisor 👋", "📦 Cảnh báo hết hàng", "Phím tắt hỏi nhanh"]
+    avoid: []
+    9x16_focus: "text=Phím tắt hỏi nhanh"
+
+  - id: R13-du-an
+    chapter: E12
+    app_type: table_crud
+    vo_line: "(montage E12) Kho, nhập hàng, KOC, dự án, trợ lý AI — tất cả trong một chỗ."
+    anchor_word: "dự án"
+    duration_target: 6.0
+    url: "/projects"
+    preconditions: ["LỆCH PLAN: trang danh sách KHÔNG có 2 tab/nút mời → mở thẻ Demo · Tranh Thép (chi tiết có 'Mời Thành Viên' + 5 tab)"]
+    steps:
+      - {action: navigate, value: "/projects", hold_s: 1.0}
+      - {action: click, selector: "text=Demo · Tranh Thép", hold_s: 1.2}
+      - {action: click, selector: "text=Mời Thành Viên", hold_s: 1.2, note: "chỉ mở dialog"}
+      - {action: click, selector: "aria=Close", fallback_text: "Close", note: "đóng — không mời email"}
+    camera: []
+    highlight: []
+    cursor: ["text=Demo · Tranh Thép", "text=Mời Thành Viên"]
+    expected_on_screen: ["Demo · Tranh Thép", "Mời Thành Viên", "Dự án demo cho video — tranh thép 40x60, 20x30, 15x21"]
+    avoid: []
+    9x16_focus: "text=Demo · Tranh Thép"
+
+  - id: R14-roi-sim
+    chapter: E10
+    app_type: dashboard
+    vo_line: "Quảng cáo ROI càng cao càng tốt? Không. Có một vùng ngọt — và đây là chỗ nhìn ra nó."
+    anchor_word: "vùng ngọt"
+    duration_target: 20.0
+    url: "/roi-simulator"
+    preconditions:
+      - "vào bằng CLICK 'Mô phỏng ROI →' trên chi tiết batch Demo (navigate thẳng = số demo USD mặc định)"
+      - "LỆCH PLAN: không có nút 'Tính Toán Sweet Spot' (tự tính); nhãn '$' → khung chỉ crop slider + dòng Gợi ý"
+    steps:
+      - {action: navigate, value: "/batches", hold_s: 0.5, note: "OFF-CAMERA: mở chi tiết 'Demo · Lot A' , bấm 'Mô phỏng ROI →' (KHÔNG bấm Áp dụng gì)"}
+      - {action: rec_start}
+      - {action: scroll_to, selector: "text=Kéo slider để xem giá trị tại ROI bất kỳ", hold_s: 0.6}
+      - {action: slider, selector: "role=slider", value: "1 → 10 liền 6 s rồi về 4.1", note: "kéo chuột thật (foreground) — không dùng phím"}
+      - {action: scroll_to, selector: "text=Gợi ý: Giữ ROI trong zone", hold_s: 0.6}
+      - {action: zoom, selector: "text=Gợi ý: Giữ ROI trong zone", level: 1.6, hold_s: 2.0}
+      - {action: zoom_out, hold_s: 0.4}
+    camera: []
+    highlight:
+      - {selector: "text=Gợi ý: Giữ ROI trong zone", kind: underline, text: "3.9x – 4.3x", t_rel: 12.0, dur: 2.0}
+    cursor: ["role=slider", "text=Gợi ý: Giữ ROI trong zone"]
+    expected_on_screen: ["Sweet Spot: 4.1x", "Giữ ROI trong zone 3.9x – 4.3x", "Kéo slider để xem giá trị tại ROI bất kỳ"]
+    avoid:
+      - {selector: "text=GMV", reason: "nhãn $ trên số VND (lỗi app) — ngoài khung crop"}
+    9x16_focus: "text=Gợi ý: Giữ ROI trong zone"
+
+  - id: R10-dashboard
+    chapter: E1
+    app_type: dashboard
+    vo_line: "Mở máy lên, bạn không nhìn số liệu — bạn nhìn tình hình. Lời bao nhiêu, so với kỳ trước ra sao, hôm nay cần xử lý gì."
+    anchor_word: "tình hình"
+    duration_target: 25.0
+    url: "/dashboard?currency=local"
+    preconditions:
+      - "QUAY CUỐI. ĐO LẠI 4 thẻ Tháng này + Quý này NGAY trước rec_start → cập nhật web-data R10 → lint lại (không lưu lô thứ 2 nên dự kiến giữ 44.940.000₫ — vẫn phải đo)"
+      - "navigate thẳng /dashboard?currency=local (VND không lưu profile); tiêm lại sdv-clean sau navigate (lời chào có email)"
+      - "log bbox nhãn Top 5 bằng selector `text=Demo ·Lot` (nhãn trục KHÔNG có dấu cách sau '·') — Chip Đơn D12"
+      - "KHÔNG zoom/callout các % so kỳ trước (đang âm: -41.5% · -46.8% · -3.8đ)"
+    steps:
+      - {action: navigate, value: "/dashboard?currency=local", hold_s: 2.0}
+      - {action: hover, selector: "text=TỔNG DOANH THU", hold_s: 0.8}
+      - {action: hover, selector: "text=LỢI NHUẬN RÒNG", hold_s: 0.8}
+      - {action: zoom, selector: "text=LỢI NHUẬN RÒNG", level: 1.8, hold_s: 1.6}
+      - {action: zoom_out, hold_s: 0.4}
+      - {action: click, selector: "text=Tháng này", hold_s: 0.4}
+      - {action: click, selector: "role=menuitem:Quý này", fallback_text: "Quý này", note: "4 thẻ đổi cùng lúc — DROP 1 (ô 3)", hold_s: 1.5}
+      - {action: hover, selector: "text=Top 5 Batch theo Margin", hold_s: 1.2}
+      - {action: hover, selector: "text=Demo ·Lot", hold_s: 1.2, note: "log bbox Chip Đơn (bỏ hover Vốn đang kẹt — số USD gồm SKU cũ)"}
+      - {action: hover, selector: "text=Demo · Lot C", hold_s: 1.5, note: "dòng Gợi Ý của Demo (dòng lô cũ đã ẩn)"}
+      - {action: hover, selector: "text=Quick Actions", hold_s: 1.5}
+    camera:
+      - {t_rel: 0.0, zoom_to: "text=TỔNG DOANH THU", level: 1.0, ease: "power2.out"}
+      - {t_rel: 10.0, zoom_to: "text=Top 5 Batch theo Margin", level: 1.3, ease: "power3.inOut", zoom_out_at: 13.0}
+    highlight:
+      - {selector: "text=LỢI NHUẬN RÒNG", kind: callout, text: "13.171.130₫", t_rel: 2.0, dur: 1.8}
+    cursor: ["text=Tháng này", "text=Demo ·Lot", "text=Demo · Lot C"]
+    expected_on_screen: ["44.940.000₫", "13.171.130₫", "28.40%", "546.310.000₫", "57.613.610₫", "Demo · Lot C\" margin cận biên (12.9%)"]
+    avoid:
+      - {selector: "text=<lô cũ 1>", reason: "lô CŨ trong Gợi Ý — sdv-clean ẩn"}
+      - {selector: "text=Batch mới", reason: "lô CŨ trong Gợi Ý — sdv-clean ẩn"}
+      - {selector: "text=Chào buổi", reason: "lời chào in email — sdv-clean thay 'ProfitBase Demo'"}
+    9x16_focus: "text=LỢI NHUẬN RÒNG"
+
+  - id: R15-mo-ket
+    chapter: E13
+    app_type: dashboard
+    vo_line: "ProfitBase. Sắp ra mắt, tháng mười, hai nghìn không trăm hai mươi sáu."
+    anchor_word: "ProfitBase"
+    duration_target: 10.0
+    url: "/dashboard?currency=local"
+    preconditions:
+      - "đầu cảnh: bấm mũi tên thu/mở sidebar (clip cho E12); cuối: bấm Theme → Tối, giữ 2 s"
+      - "SAU QUAY: xoá localStorage.theme + reload (R3: trước đó theme = null) — trả Chrome user như cũ"
+      - "log bbox nút Theme (vòng tròn m14)"
+    steps:
+      - {action: hover, selector: "aside button", hold_s: 0.6, note: "nút '<' cạnh logo"}
+      - {action: click, selector: "aside button", note: "thu sidebar → rail 72 px"}
+      - {action: hold, hold_s: 1.0}
+      - {action: click, selector: "aside button", note: "mở lại 256 px"}
+      - {action: click, selector: "text=Giao diện", hold_s: 0.4}
+      - {action: click, selector: "role=menuitem:Tối", fallback_text: "Tối", note: "tắt đèn"}
+      - {action: hold, hold_s: 2.0}
+      - {action: rec_stop}
+    camera: []
+    highlight: []
+    cursor: ["text=Giao diện"]
+    expected_on_screen: ["ProfitBase Demo"]
+    avoid: []
+    9x16_focus: "text=Giao diện"
+
+  # ─────────────────────────────── KHÔNG QUAY ───────────────────────────────
+  - id: R09-sales-DROPPED
+    capture: false
+    vo_line: "(bỏ khỏi montage E12 — quyết định phiên chính 27/09)"
+    duration_target: 0
+    replace_with: "không dùng: /sales $0 USD + /sales/product-health 0 sản phẩm (web-data R09)"

@@ -1,0 +1,438 @@
+{
+ "_doc": "Example project.json (values = the ProfitBase case of 27/09/2026, no personal data). Copy next to your project, edit. Every relative path resolves against THIS file's folder. Keys starting with _ are comments.",
+ "project": "ProfitBase",
+ "paths": {
+  "footage_dir": "footage",
+  "markers": "footage/markers.txt",
+  "capture_log": "footage/capture-log.jsonl",
+  "capture_script": "capture-script.yaml",
+  "web_data": "footage/web-data.md",
+  "vo_dir": "vo",
+  "script_txt": "vo/script.txt",
+  "music_src": "music/source.wav",
+  "sfx_plan": "sfx-plan.json",
+  "comp_dir": "comp",
+  "comp_916_dir": "comp-9x16",
+  "deliver_dir": "deliver",
+  "qa_dir": "renders/qa",
+  "stems_dir": "renders/stems"
+ },
+ "capture": {
+  "_doc": "rec.py / vcheck.py. crop_top = height of the browser 'debugging' bar measured on a real frame (P9).",
+  "monitor_idx": 0,
+  "max_seconds": 900,
+  "frame": [
+   1920,
+   1080
+  ],
+  "crf": 14,
+  "preset": "superfast",
+  "crop_top": 70,
+  "prefill": {
+   "_doc": "OFF-CAMERA field values for __sdvFillByLabels(labels, expand, probe) - call twice, go on when ok:true",
+   "labels": {
+    "Phí Thanh Toán": "0",
+    "Phí Cố Định Sàn": "0",
+    "Phí Quảng Cáo (Ads nội sàn)": "10",
+    "Công cụ / Tools": "3400000",
+    "Thuế TNCN/DN": "10"
+   },
+   "expand": "C. Chi Phí Vận Hành",
+   "probe": "Công cụ / Tools"
+  }
+ },
+ "e0": {
+  "forbidden_apps": [
+   "codex",
+   "chatgpt"
+  ],
+  "motion_pass_fps": 25,
+  "motion_fail_fps": 10
+ },
+ "privacy": {
+  "_doc": "clean_js.py inlines this into js/sdv-clean.template.js. Regexes are JavaScript regex source strings.",
+  "label": "ProfitBase Demo",
+  "hide_visibility": [
+   "[aria-label=\"Mở P&L AI Agent\"]",
+   "button.fixed.bottom-6.right-6",
+   "[data-sonner-toaster]"
+  ],
+  "hide_selectors": [
+   "aside a[href=\"/logic-map\"]",
+   "aside a[href=\"/system-architecture\"]",
+   "aside a[href=\"/access-map\"]",
+   "aside a[href=\"/policy-pulse\"]",
+   "aside a[href^=\"/admin\"]"
+  ],
+  "mask_selectors": [
+   "aside a[href=\"/profile\"]"
+  ],
+  "hide_groups": [
+   {
+    "root": "aside",
+    "leaf_re": "^\\s*admin dashboard\\s*$",
+    "flags": "i",
+    "closest": "li"
+   }
+  ],
+  "hide_leaf_text": [
+   "^\\s*NEW\\s*$",
+   "^Phase 1: chat"
+  ],
+  "replace_text": [
+   {
+    "re": "\\s*[•·]\\s*Claude Opus[\\s\\d.]*",
+    "with": ""
+   }
+  ],
+  "split_text": [
+   {
+    "container": "h1,h2,h3,p",
+    "starts_re": "^\\s*Chào buổi",
+    "after_re": ",\\s*$"
+   }
+  ],
+  "old_names_re": "Old item name A|Old item name B|Test 1",
+  "keep_re": "Demo ·",
+  "old_rows": [
+   {
+    "root": "main",
+    "leaf_re": "^\\s*Batch \"",
+    "closest": "div.group"
+   }
+  ],
+  "routes": [
+   {
+    "path_prefix": "/boms",
+    "hide_rows": {
+     "selector": "main tbody tr",
+     "keep_re": "^\\s*Demo ·"
+    },
+    "hide_blocks": {
+     "root": "main",
+     "leaf_re": "^\\s*Định mức — ",
+     "container_class_re": "space-y-3"
+    },
+    "listbox": {
+     "trigger_text_re": "Chọn nguyên liệu",
+     "in_dialog": true,
+     "keep_re": "^\\s*Demo ·"
+    }
+   }
+  ]
+ },
+ "vo": {
+  "voice": "Hải Đăng",
+  "th_db": -45,
+  "gap_s": 0.25,
+  "pre_pad": 0.02,
+  "post_pad": 0.05,
+  "min_line_gap": 0.25,
+  "max_atempo": 1.06,
+  "respell_file": "vo/tts_respell.json",
+  "adjust_file": "vo/adjust.json",
+  "takes_file": "vo/takes.json"
+ },
+ "grid": {
+  "bpm": 124,
+  "beats_per_bar": 4,
+  "bars": 41,
+  "t0": 0.25,
+  "tail_s": 1.6,
+  "fps": 30,
+  "drops": [
+   3,
+   17,
+   27
+  ],
+  "hard_cuts_bars": [
+   17,
+   23,
+   33,
+   39
+  ],
+  "chapters": [
+   {
+    "line": "E01",
+    "id": "E1",
+    "bars": [
+     0,
+     3
+    ]
+   },
+   {
+    "line": "E02",
+    "id": "E2",
+    "bars": [
+     3,
+     7
+    ]
+   },
+   {
+    "line": "E03",
+    "id": "E3",
+    "bars": [
+     7,
+     10
+    ]
+   },
+   {
+    "line": "E04",
+    "id": "E4",
+    "bars": [
+     10,
+     14
+    ]
+   },
+   {
+    "line": "E05",
+    "id": "E5",
+    "bars": [
+     14,
+     17
+    ]
+   },
+   {
+    "line": "E06",
+    "id": "E6",
+    "bars": [
+     17,
+     20
+    ]
+   },
+   {
+    "line": "E07",
+    "id": "E7",
+    "bars": [
+     20,
+     23
+    ]
+   },
+   {
+    "line": "E08",
+    "id": "E8",
+    "bars": [
+     23,
+     27
+    ]
+   },
+   {
+    "line": "E09",
+    "id": "E9",
+    "bars": [
+     27,
+     30
+    ]
+   },
+   {
+    "line": "E10",
+    "id": "E10",
+    "bars": [
+     30,
+     33
+    ]
+   },
+   {
+    "line": "E11",
+    "id": "E11",
+    "bars": [
+     33,
+     36
+    ]
+   },
+   {
+    "line": "E12",
+    "id": "E12",
+    "bars": [
+     36,
+     39
+    ]
+   },
+   {
+    "line": "E13",
+    "id": "E13",
+    "bars": [
+     39,
+     41
+    ]
+   }
+  ]
+ },
+ "music": {
+  "_doc": "arrangement[g] = SOURCE bar played at grid bar g (fit_beat_grid.py on the source). len == grid.bars.",
+  "source_bpm": 124,
+  "crossfade_s": 0.03,
+  "arrangement": [
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   35,
+   36
+  ],
+  "alt_name": "intro",
+  "arrangement_alt": [
+   1,
+   2,
+   3,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   32,
+   33,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   35,
+   36
+  ]
+ },
+ "build": {
+  "crop": "1920:1010",
+  "crop_y_default": 70,
+  "crf": 17,
+  "source_ext": ".mkv",
+  "erase_rule": {
+   "r": [
+    175,
+    246
+   ],
+   "g": [
+    95,
+    166
+   ],
+   "b": [
+    60,
+    141
+   ],
+   "r_minus_g": [
+    45,
+    111
+   ],
+   "g_minus_b": [
+    5,
+    51
+   ],
+   "blob": [
+    8,
+    64
+   ],
+   "aspect": [
+    0.5,
+    2.0
+   ]
+  }
+ },
+ "captions": {
+  "max_words": 4,
+  "group_max_chars": 26,
+  "group_max_words": 4,
+  "pairs_file": "config-examples/caption-pairs.vi.json"
+ },
+ "mix": {
+  "sfx_trim_db": -4.0,
+  "margin_db": 3.0,
+  "max_extra_db": 6.0,
+  "cap_speech_db": 9.0,
+  "cap_gap_db": 5.0,
+  "peak_kpi_db": -5.0,
+  "music_gap_db": -6.0,
+  "music_duck_db": -23.0,
+  "lufs": -14.0,
+  "true_peak_db": -1.0,
+  "drop_kick_rise_db": 6.0,
+  "sfx_margin_db": 6.0,
+  "group_boost": {
+   "flip": 5.0,
+   "diagram": 5.0,
+   "chart-rise": 5.0,
+   "typing": 6.0
+  }
+ },
+ "srt": {
+  "min_cue_s": 0.6
+ },
+ "nine_sixteen": {
+  "app": [
+   20,
+   365,
+   1040,
+   547
+  ],
+  "hero": [
+   20,
+   952,
+   1040,
+   440
+  ],
+  "cap_y": 1450,
+  "cap_h": 105,
+  "radius": 28
+ },
+ "numbers": {
+  "derived": {}
+ }
+}
