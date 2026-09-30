@@ -27,7 +27,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 - Không ghi email/tên tài khoản/token vào file; thay bằng `<ĐÃ CHE>`. Soát khung chat/AI có lộ lịch sử cũ không.
 
 ## BLOCK D — model
-Kế thừa model phiên chính (Opus 5.5).
+Kế thừa model phiên chính (Opus 5.5): recon là phần lên kế hoạch/đọc-hiểu, không thuộc nhóm dựng của Sonnet 5.5.
 
 ## BLOCK E — tự chấm trước khi nộp
 Bảng KPI đạt/không + bằng chứng (file, dòng) · cap đã dùng · route chưa đo + vì sao · ≥ 2 rủi ro "hỏng mà không ai biết"

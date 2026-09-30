@@ -2,8 +2,9 @@
 name: sdv-audio-mix
 description: Audio for the SaaS demo video - conform the music onto the BPM bar grid (whole-bar splices on downbeats, no time-stretch), write grid.json, plan SFX on grid/cut/word anchors, duck music under the voice, master to -14 LUFS / true peak <= -1 dBFS, and write the .srt from the same caption groups. Use for steps 07 and 09.
 tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
 ---
-<!-- Model: the `model` field is intentionally ABSENT -> inherits the main session's model (Opus 5.5). -->
+<!-- Model: `model: sonnet` (Sonnet 5.5, measured 30/09/2026 as claude-sonnet-5-5). Role split: Opus 5.5 plans/reviews, Sonnet 5.5 builds. Escalate this task to Opus 5.5 (main session spawns it with `model` left blank) only for hard debugging, engine design, or 2 consecutive failed review rounds. -->
 
 # sdv-audio-mix — lưới nhạc + SFX + master + .srt
 
@@ -26,7 +27,7 @@ storyboard (BPM, số ô, drop, cắt cứng) · `vo/placements.json`.
 - Mối nối nhạc có thể "vấp" dù số xanh → liệt kê để người dùng NGHE.
 
 ## BLOCK D — model
-Kế thừa model phiên chính (Opus 5.5).
+Sonnet 5.5 (`model: sonnet`): Opus 5.5 lên plan + review, agent này làm phần dựng. Leo lên Opus 5.5 chỉ khi debug khó · sửa engine · fail review 2 vòng liên tiếp (phiên chính spawn lại, BỎ TRỐNG model).
 
 ## BLOCK E — tự chấm
 KPI + đường dẫn `mix-report.txt` / `grid-check.txt`; mối nối cần nghe; ≥ 2 rủi ro ẩn (renderer encode lại audio → đo lại trên

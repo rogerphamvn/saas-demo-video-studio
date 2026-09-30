@@ -1,0 +1,56 @@
+/* lib/v6.css - style for lib/v6-kit.js (generic). Static CSS only: no transition, no blur filter.
+   Palette comes from CSS variables so a project can re-skin without editing this file (defaults = the violet glass of the case):
+     :root { --v6-accent:#6952e0; --v6-accent-2:#b7a8ff; --v6-ok:#1fad53; --v6-bad:#dd3c3c; --v6-ink:#f5f3ff; --v6-mute:#b9b4e0;
+             --v6-glass-a:rgba(38,30,92,.95); --v6-glass-b:rgba(20,16,54,.95); --v6-lt-top:922px; } */
+:root { --v6-accent: #6952e0; --v6-accent-2: #b7a8ff; --v6-ok: #1fad53; --v6-bad: #dd3c3c; --v6-ink: #f5f3ff; --v6-mute: #b9b4e0;
+        --v6-glass-a: rgba(38,30,92,.95); --v6-glass-b: rgba(20,16,54,.95); --v6-lt-top: 922px; --v6-font: "Inter", sans-serif; }
+
+/* app frame: 2-layer shadow (near + far) over the accent glow. Add class "frame" to the element that wraps the screen capture. */
+.frame { box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 0 60px rgba(105,82,224,.55), 0 14px 28px rgba(0,0,0,.40), 0 50px 110px rgba(0,0,0,.55) !important; }
+.v6tw { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 960px 477px; }
+.bgshot { transform-origin: 50% 50%; }
+
+/* shared glass block */
+.v6-g { position: absolute; visibility: hidden; opacity: 0; border-radius: 22px; color: var(--v6-ink); font-family: var(--v6-font); overflow: hidden;
+        background: linear-gradient(180deg, var(--v6-glass-a) 0%, var(--v6-glass-b) 100%); border: 1.5px solid rgba(183,168,255,.30);
+        box-shadow: 0 10px 22px rgba(0,0,0,.35), 0 34px 80px rgba(0,0,0,.50), inset 0 1px 0 rgba(255,255,255,.18); }
+.v6-k { font: 700 19px/1.2 var(--v6-font); letter-spacing: .07em; text-transform: uppercase; color: var(--v6-mute); white-space: nowrap; }
+.v6-pill { display: inline-block; padding: 4px 14px; border-radius: 999px; font: 800 18px/1.2 var(--v6-font); letter-spacing: .08em; color: #fff; }
+.v6-pill.red { background: var(--v6-bad); } .v6-pill.grn { background: var(--v6-ok); } .v6-pill.vio { background: var(--v6-accent); }
+.w { display: inline-block; overflow: hidden; vertical-align: bottom; padding-bottom: .08em; margin-bottom: -.08em; }
+.wi { display: inline-block; }
+.v6-x, .v6-ok { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 50%; font: 900 34px/1 var(--v6-font); color: #fff; }
+.v6-x { background: var(--v6-bad); box-shadow: 0 0 0 4px rgba(221,60,60,.25), 0 10px 24px rgba(221,60,60,.45); }
+.v6-ok { background: var(--v6-ok); box-shadow: 0 0 0 4px rgba(31,173,83,.25), 0 10px 24px rgba(31,173,83,.45); }
+.v6-draw { fill: none; stroke-dasharray: 1; stroke-dashoffset: 1; stroke-linecap: round; stroke-linejoin: round; }
+
+/* lower third (below the caption band) */
+.v6-lt { left: 64px; top: var(--v6-lt-top); height: 88px; border-radius: 18px; padding: 0 30px 0 34px; white-space: nowrap; }
+.v6-lt .bar { position: absolute; left: 0; top: 0; width: 8px; height: 100%; background: linear-gradient(180deg, var(--v6-accent-2), var(--v6-accent)); transform-origin: 50% 0; }
+.v6-lt .n { display: inline-block; margin: 26px 16px 0 0; vertical-align: top; font: 800 20px/1.6 var(--v6-font); color: #c9bcff; letter-spacing: .06em; }
+.v6-lt .t { display: inline-block; margin-top: 20px; vertical-align: top; font: 800 36px/1.25 var(--v6-font); }
+
+/* bottom band + cell: containers for your own blocks (KPI strip, before/after, dots...) */
+.v6-band { left: 160px; top: 912px; width: 1600px; height: 136px; background: none; border: 0; box-shadow: none; overflow: visible; border-radius: 0; }
+.v6-cell { position: absolute; top: 0; height: 136px; border-radius: 20px; overflow: hidden;
+           background: linear-gradient(180deg, var(--v6-glass-a) 0%, var(--v6-glass-b) 100%); border: 1.5px solid rgba(183,168,255,.30);
+           box-shadow: 0 10px 22px rgba(0,0,0,.35), 0 34px 80px rgba(0,0,0,.50), inset 0 1px 0 rgba(255,255,255,.18); }
+.v6-cell .v6-k { position: absolute; left: 24px; top: 18px; }
+
+/* split-flap digits (dark tiles for the glass look; .fl-k is hidden until the flap turns) */
+.v6-fl { display: inline-block; white-space: nowrap; }
+.fl-c { position: relative; display: inline-block; width: .64em; height: 1.12em; margin: 0 .015em; vertical-align: top; }
+.fl-k { position: absolute; left: 0; top: 0; width: 100%; height: 100%; text-align: center; line-height: 1.12em; border-radius: .09em; visibility: hidden; backface-visibility: hidden;
+        background: linear-gradient(180deg, #33297e 0%, #33297e 50%, #2a2169 50%, #2a2169 100%); }
+.fl-k.k0 { visibility: visible; }
+.fl-line { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(8, 6, 26, .55); }
+.fl-s { display: inline-block; }
+.v6-svgfl { position: absolute; transform: translate(-50%, -50%); z-index: 3; }
+.v6-svgfl .fl-k { background: linear-gradient(180deg, #2c2372 0%, #2c2372 50%, #241c5e 50%, #241c5e 100%); }
+
+/* effects */
+.v6-sweep { position: absolute; top: -25%; left: 0; width: 240px; height: 150%; visibility: hidden; z-index: 30;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.26) 50%, rgba(255,255,255,0) 100%); }
+.v6-bloom { position: absolute; border-radius: 50%; visibility: hidden; opacity: 0; }
+.v6-burst { position: absolute; width: 0; height: 0; z-index: 45; }
+.v6-burst i { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; visibility: hidden; }

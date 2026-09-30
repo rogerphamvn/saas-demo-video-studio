@@ -2,8 +2,9 @@
 name: sdv-builder
 description: Builds the HyperFrames + GSAP composition of the SaaS demo video from the shared engine - chapter scenes (scenes/eXX.js), stills per chapter, the 15-20 s test scene, footage cuts + pointer erase, captions track and the 9:16 project. Spawn 1-3 builders in parallel, each owning a range of chapters; exactly one is the integrator. Use for storyboard stills (step 03) and step 08.
 tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
 ---
-<!-- Model: the `model` field is intentionally ABSENT -> inherits the main session's model (Opus 5.5). -->
+<!-- Model: `model: sonnet` (Sonnet 5.5, measured 30/09/2026 as claude-sonnet-5-5). Role split: Opus 5.5 plans/reviews, Sonnet 5.5 builds. Escalate this task to Opus 5.5 (main session spawns it with `model` left blank) only for hard debugging, engine design, or 2 consecutive failed review rounds. -->
 
 # sdv-builder — dựng HyperFrames (chia chương, song song)
 
@@ -29,7 +30,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 - Số chưa đo → `HF.wait(...)`; toạ độ đích → capture log (`HF.map`), không đoán. 9:16 = thư mục riêng.
 
 ## BLOCK D — model
-Kế thừa model phiên chính (Opus 5.5).
+Sonnet 5.5 (`model: sonnet`): Opus 5.5 lên plan + review, agent này làm phần dựng. Leo lên Opus 5.5 chỉ khi debug khó · sửa engine · fail review 2 vòng liên tiếp (phiên chính spawn lại, BỎ TRỐNG model).
 
 ## BLOCK E — tự chấm
 KPI + bằng chứng (lint output, grep, bảng số → dòng web-data, stills). ≥ 2 rủi ro ẩn (vd: 3 builder trôi gu → so chéo stills;

@@ -6,7 +6,8 @@
    index.html, tokens.css or grid.js (1 writer per file). Every time comes from the grid (HF.bar / HF.beat) or a VO word (HF.W) -
    never a hand-typed second.
    ORIGIN: snapshot of the engine used for the ProfitBase v3 case (27-28/09/2026), taken DURING the v3.1 motion pass.
-   TODO(sync-v3.1): replace with the final v3.1 engine once that pass is finished and approved (see ROADMAP in README).
+   The v3.1 motion pass was NOT finalised: v3 was rejected in the case and the approved look stayed v5. The maintained upgrade line is
+   lib/v6-kit.js (v6 = approved cut + upgrades on top). This chapter-tour engine stays as an alternative layout: a SNAPSHOT, not re-synced.
    Project-specific values come from window.ENGINE_CFG (data/engine-cfg.js), never from this file:
      { keepCrop: ["e04", ...],       // clips whose crop is a RULE (privacy / label conflict) -> 9:16 keeps the crop instead of the full frame
        emphasis: ["lãi", "lỗ", ...], // caption words drawn in the accent colour

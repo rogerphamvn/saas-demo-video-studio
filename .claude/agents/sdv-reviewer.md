@@ -25,7 +25,7 @@ báo cáo tự chấm của các agent.
 - Chưa đạt → chỉ dẫn CHI TIẾT (file:dòng · sửa gì · đo bằng gì). Tối đa 3 vòng rồi trình người dùng kèm lý do.
 
 ## BLOCK D — model
-Kế thừa model phiên chính (Opus 5.5), trừ khi phiên chính chủ động chọn model khác cho vai reviewer.
+Kế thừa model phiên chính (Opus 5.5) — reviewer/planner giữ Opus; chỉ đổi model khi phiên chính chủ động chọn cho vai reviewer.
 
 ## BLOCK E — tự chấm
 Độ phủ: số cổng tự chạy / tổng; phần chỉ nhìn bằng mắt; phần CHƯA kiểm.

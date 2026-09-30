@@ -4,7 +4,7 @@ description: >-
   Làm video REVIEW / giới thiệu / demo cho WEB APP · SaaS · website từ MÀN HÌNH THẬT (không mock) chỉ bằng 1 prompt:
   recon web chỉ-đọc → 3 storyboard cho người dùng chọn → kịch bản quay chi tiết (cổng G0) → cổng môi trường E0 + quay
   MACRO MODE trên Chrome đã đăng nhập → VO tiếng Việt (VieNeu local) căn từng từ → nhạc nắn theo lưới BPM → dựng HyperFrames
-  + GSAP (tiêu đề chương, card UI thật, split-flap, chip cầu nối, 3D flip/push) bằng nhiều agent Opus 5.5 SONG SONG →
+  + GSAP (tiêu đề chương, card UI thật, split-flap, chip cầu nối, 3D flip/push) bằng nhiều agent SONG SONG (Opus 5.5 lên plan/review, Sonnet 5.5 dựng) →
   mix −14 LUFS + SFX + .srt → 16:9 + 9:16 chia đôi → reviewer độc lập. Dùng khi người dùng nói: "làm video review cho <URL>",
   "video giới thiệu web app", "video demo SaaS", "quay màn hình giới thiệu chức năng", "video tour sản phẩm", "make a product
   demo video for my web app", "screen-recorded SaaS review video". KHÔNG dùng cho: video quay người thật/camera, motion
@@ -12,7 +12,7 @@ description: >-
 metadata:
   version: "1.0.0"
   source_case: "examples/profitbase (26–28/09/2026)"
-  models: "phiên chính = đạo diễn; agent con: BỎ TRỐNG model để kế thừa model phiên chính (Opus 5.5)"
+  models: "Opus 5.5 (phiên chính) = brief + plan + storyboard + review; Sonnet 5.5 (model: sonnet) = dựng/quay/mix; leo lên Opus 5.5 (spawn BỎ TRỐNG model) chỉ khi debug khó, sửa engine, hoặc fail review 2 vòng liên tiếp"
 ---
 
 # SaaS demo video studio — video review web app từ 1 prompt
@@ -37,7 +37,8 @@ Lệnh chạy từng bước: `pipeline/01…10-*.md` (gốc repo). Script: `scr
 ```
 Phiên chính = ĐẠO DIỄN: lên PLAN (mục tiêu · lộ trình · phân công · SOP · KPI · cách nộp) → xin duyệt → giao việc → nghiệm thu
   │
-  ├─ agent con chạy SONG SONG khi không phụ thuộc nhau (spawn với model BỎ TRỐNG ⇒ kế thừa Opus 5.5 của phiên chính)
+  ├─ agent con chạy SONG SONG khi không phụ thuộc nhau. sdv-capture · sdv-voiceover · sdv-builder · sdv-audio-mix có `model: sonnet` (Sonnet 5.5);
+  │     sdv-recon · sdv-reviewer để trống ⇒ kế thừa Opus 5.5 của phiên chính
   │     sdv-recon · sdv-capture · sdv-voiceover · sdv-builder (×1–3, chia theo chương) · sdv-audio-mix
   └─ sdv-reviewer (độc lập, chỉ đo + phản biện, không sửa) → phiên chính quyết: giao / trả việc kèm chỉ dẫn file:dòng
 ```
@@ -56,6 +57,18 @@ Luật giao việc: mỗi agent đọc file của mình trong `.claude/agents/` 
 trước khi nộp (KPI đạt/không + bằng chứng, ≥ 2 rủi ro "hỏng mà không ai biết"). Phiên chính KHÔNG bê nguyên báo cáo agent
 cho người dùng — tự kiểm lại trên bằng chứng (sheet, log, số đo) rồi mới trình.
 Lệnh `hyperframes render` chạy ở PHIÊN CHÍNH (agent con có thể bị bộ lọc an toàn chặn lệnh nặng).
+
+## 2b. Phân vai model (user chốt 30/09/2026)
+
+> "sonnet 5.5 đang làm rất tốt, đảm bảo Opus 5.5 lên plan sau đó đưa cho sonnet 5.5 làm các video motion nhé, phần nào khó quá thì mới cho opus 5.5 làm"
+
+| Việc | Model | Cách spawn |
+|---|---|---|
+| brief · plan · storyboard · review cuối | Opus 5.5 (phiên chính) | — |
+| dựng scene, quay theo kịch bản, mix âm, chuẩn bị render | Sonnet 5.5 | `model: sonnet` trong `.claude/agents/*.md` |
+| debug khó · thiết kế/sửa engine · builder fail review 2 vòng liên tiếp | Opus 5.5 | spawn lại, **BỎ TRỐNG** `model` |
+
+Phân vai này mới áp từ 30/09/2026, **chưa có số đo** (bao nhiêu vòng review / video); ghi lại ở ca đầu.
 
 ## 3. Ba cổng người dùng (và cách bỏ qua bằng mặc định)
 
@@ -118,5 +131,7 @@ Song song hoá: 02 ∥ 03 · 05 ∥ 06 ∥ 07 · 08 chia 1–3 builder theo nhó
 | `references/macro-capture.md` | cổng E0 + cách viết macro 1 lệnh/shot + privacy tại nguồn |
 | `references/privacy-checklist.md` | checklist che thông tin |
 | `references/capture-script-by-app-type.md` | recon → feature-map → nháp kịch bản cho 8 dạng app |
+| `references/director-notes.md` | từ điển 30 câu ghi chú đạo diễn (địa chỉ + câu + con số) dùng khi sửa ở U2 / sau review |
 | `references/cost-time.md` | chi phí / token / thời gian đo thật + bảng bấm giờ cho ca sau |
+| `templates/prompt-launch-video.md` | mẫu prompt "video ra mắt sản phẩm" trọn quy trình có 3 cổng (EN + VI), chưa chạy ca thật |
 | `templates/` | brief, feature-map, storyboard, kịch bản quay (YAML + hướng dẫn), kịch bản VO 30/45/70 s |

@@ -2,8 +2,9 @@
 name: sdv-voiceover
 description: Vietnamese voice-over for the SaaS demo video - one TTS take per sentence with VieNeu (local, 0 API cost), pronunciation QC with two ASR models, sentence placement on the BPM bar grid, word alignment and 2-4-word caption groups. Use for step 06, in parallel with capture.
 tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
 ---
-<!-- Model: the `model` field is intentionally ABSENT -> inherits the main session's model (Opus 5.5). -->
+<!-- Model: `model: sonnet` (Sonnet 5.5, measured 30/09/2026 as claude-sonnet-5-5). Role split: Opus 5.5 plans/reviews, Sonnet 5.5 builds. Escalate this task to Opus 5.5 (main session spawns it with `model` left blank) only for hard debugging, engine design, or 2 consecutive failed review rounds. -->
 
 # sdv-voiceover — VO VieNeu + lưới + caption
 
@@ -25,7 +26,7 @@ tools: Read, Write, Edit, Bash, Glob, Grep
 - Key chỉ đọc từ biến môi trường / `.env`; không in key.
 
 ## BLOCK D — model
-Kế thừa model phiên chính (Opus 5.5).
+Sonnet 5.5 (`model: sonnet`): Opus 5.5 lên plan + review, agent này làm phần dựng. Leo lên Opus 5.5 chỉ khi debug khó · sửa engine · fail review 2 vòng liên tiếp (phiên chính spawn lại, BỎ TRỐNG model).
 
 ## BLOCK E — tự chấm
 Bảng câu (take · lý do · ratio · từ nội suy) + bảng fit. ≥ 2 rủi ro ẩn (vd: 2 ASR cùng sai một kiểu; atempo sát 1.06 làm méo giọng).

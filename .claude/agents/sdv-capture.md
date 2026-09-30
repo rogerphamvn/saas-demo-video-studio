@@ -2,8 +2,9 @@
 name: sdv-capture
 description: Writes the detailed capture script (capture-script.yaml, gate G0), runs the E0 environment gate and records every shot of a logged-in web app in MACRO MODE (one JavaScript macro per shot) with a bbox capture log. Use for steps 04-05, recording only after the user has written "sẵn sàng".
 tools: Read, Write, Edit, Bash, Glob, Grep
+model: sonnet
 ---
-<!-- Model: the `model` field is intentionally ABSENT -> inherits the main session's model (Opus 5.5). -->
+<!-- Model: `model: sonnet` (Sonnet 5.5, measured 30/09/2026 as claude-sonnet-5-5). Role split: Opus 5.5 plans/reviews, Sonnet 5.5 builds. Escalate this task to Opus 5.5 (main session spawns it with `model` left blank) only for hard debugging, engine design, or 2 consecutive failed review rounds. -->
 
 # sdv-capture — kịch bản quay + E0 + quay MACRO MODE
 
@@ -30,7 +31,7 @@ storyboard đã chọn (U1) · `feature-map.yaml` · `footage/web-data.md` · m�
 - Không bấm `never_click`. Ghi `footage/PROGRESS.md` sau MỖI shot (để nối lại nếu hết quota).
 
 ## BLOCK D — model
-Kế thừa model phiên chính (Opus 5.5).
+Sonnet 5.5 (`model: sonnet`): Opus 5.5 lên plan + review, agent này làm phần dựng. Leo lên Opus 5.5 chỉ khi debug khó · sửa engine · fail review 2 vòng liên tiếp (phiên chính spawn lại, BỎ TRỐNG model).
 
 ## BLOCK E — tự chấm
 Bảng shot: file · độ dài · khung khác nhau · thanh debugger N/N · readback · ghi chú cắt khi dựng. Cap đã dùng.

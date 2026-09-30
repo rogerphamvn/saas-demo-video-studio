@@ -26,4 +26,8 @@ before you sell a video or a service built on it. Checked on 2026-09-28 unless s
 - **No motion-reference videos or third-party prompts.** The research notes that inspired the motion vocabulary
   (launch films on whatships.com, posts on X, the `awesome-opus-5-5-videos` collection) were used for learning only
   and are neither copied nor linked as assets here; one reference skill in that ecosystem is CC BY-NC and was not used.
+  The method behind `references/director-notes.md` and `templates/prompt-launch-video.md` (named reference style, stop for approval before code, stills per
+  scene, director notes as address + phrase + number) comes from the 6-step post by `rexan_wong` (x.com/rexan_wong/status/2103707054108299437); the 12-step course post
+  by `0xMovez` (x.com/0xMovez/status/2104216919033192746) embeds and extends it. Both files are our own wording; no prompt or code of either author is copied.
+- **No skill from another author is bundled.** `code-rendered-video` (MIT, (c) 2026 viettran) is only *mentioned* in README as an optional companion; get it from its author.
 - **No font files.**

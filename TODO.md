@@ -1,6 +1,8 @@
 # TODO (việc chưa làm — đưa vào sau, không chặn phát hành private)
 
-- [ ] **sync-v3.1**: đồng bộ `engine/lib/engine.js`, `engine/lib/motion-kit.js`, `engine/index.html` (CSS) với motion engine v3.1 cuối cùng khi được khách duyệt; ghi số đo mới vào `references/cost-time.md`.
+- [x] ~~sync-v3.1~~ → thay bằng `engine/lib/v6-kit.js` (30/09/2026; SMOKE-TESTED, xem `engine/README.md`).
+- [ ] Render thử 1 video đầy đủ bằng `v6-kit.js` tổng quát + nối vào `engine.js`; ghi số đo vào `references/cost-time.md`.
+- [ ] Bấm số đo phân vai Opus plan / Sonnet dựng (số vòng review, thời gian) ở ca đầu.
 - [ ] Bấm giờ trọn "1 prompt → bản nháp" ở ca thứ 2, điền bảng `references/cost-time.md` §3.
 - [ ] Chạy lại end-to-end các script `STATUS: UNTESTED` trên ca thứ 2, đổi nhãn.
 - [ ] Thêm video demo công khai + link trong README (cần chủ sản phẩm đồng ý).

@@ -3,7 +3,7 @@
    Deterministic: fixed angles, no Math.random, no onUpdate, no runtime text, no filter, no CSS transition, no bouncy ease.
    ORIGIN: generic half of lib/motion.js from the ProfitBase v3.1 motion pass (snapshot 28/09/2026 00:05, pass NOT finished).
    The case-specific half (one illustration per chapter with the app's real numbers) is NOT shipped - write your own in scenes/.
-   TODO(sync-v3.1): re-sync with the final v3.1 motion engine once it is approved (see README ROADMAP).
+   Superseded by lib/v6-kit.js (beat-locked 3D transitions + split-flap, from the v6 case). Kept as the chapter-tour variant; NOT re-synced.
 
    Usage (index.html, after all scenes):
      window.MOTION_KIT(HF, window.MOTION_CFG)
